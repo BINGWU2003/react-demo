@@ -104,23 +104,23 @@ export function loadCLodop() {
 }
 
 //==获取LODOP对象主过程,判断是否安装、需否升级:==
-export function getLodop(oOBJECT, oEMBED) {
+export function getLodop(oOBJECT, oEMBED, errCallback) {
     var strFontTag = "<br><font color='#FF00FF'>打印控件"
-    var strLodopInstall = strFontTag + "未安装!点击这里<a href='install_lodop32.exe' target='_self'>执行安装</a>"
-    var strLodopUpdate = strFontTag + "需要升级!点击这里<a href='install_lodop32.exe' target='_self'>执行升级</a>"
-    var strLodop64Install = strFontTag + "未安装!点击这里<a href='install_lodop64.exe' target='_self'>执行安装</a>"
-    var strLodop64Update = strFontTag + "需要升级!点击这里<a href='install_lodop64.exe' target='_self'>执行升级</a>"
-    var strCLodopInstallA = "<br><font color='#FF00FF'>Web打印服务CLodop未安装启动，点击这里<a href='CLodop_Setup_for_Win32NT.exe' target='_self'>下载执行安装</a>"
+    var strLodopInstall = strFontTag + "未安装!点击这里<a href='http://www.c-lodop.com/demolist/install_lodop32.exe' target='_self'>执行安装</a>"
+    var strLodopUpdate = strFontTag + "需要升级!点击这里<a href='http://www.c-lodop.com/demolist/install_lodop32.exe' target='_self'>执行升级</a>"
+    var strLodop64Install = strFontTag + "未安装!点击这里<a href='http://www.c-lodop.com/demolist/install_lodop64.exe' target='_self'>执行安装</a>"
+    var strLodop64Update = strFontTag + "需要升级!点击这里<a href='http://www.c-lodop.com/demolist/install_lodop64.exe' target='_self'>执行升级</a>"
+    var strCLodopInstallA = "<br><font color='#FF00FF'>Web打印服务CLodop未安装启动，点击这里<a href='http://www.c-lodop.com/demolist/CLodop_Setup_for_Win32NT.exe' target='_self'>下载执行安装</a>"
     var strCLodopInstallB = "<br>（若此前已安装过，可<a href='CLodop.protocol:setup' target='_self'>点这里直接再次启动</a>）"
-    var strCLodopUpdate = "<br><font color='#FF00FF'>Web打印服务CLodop需升级!点击这里<a href='CLodop_Setup_for_Win32NT.exe' target='_self'>执行升级</a>"
+    var strCLodopUpdate = "<br><font color='#FF00FF'>Web打印服务CLodop需升级!点击这里<a href='http://www.c-lodop.com/demolist/CLodop_Setup_for_Win32NT.exe' target='_self'>执行升级</a>"
     var strLodop7FontTag = "<br><font color='#FF00FF'>Web打印服务Lodop7"
-    var strLodop7HrefX86 = "点击这里<a href='Lodop7_Linux_X86_64.tar.gz' target='_self'>下载安装</a>(下载后解压，点击lodop文件开始执行)"
-    var strLodop7HrefARM = "点击这里<a href='Lodop7_Linux_ARM64.tar.gz'  target='_self'>下载安装</a>(下载后解压，点击lodop文件开始执行)"
+    var strLodop7HrefX86 = "点击这里<a href='http://www.c-lodop.com/demolist/Lodop7_Linux_X86_64.tar.gz' target='_self'>下载安装</a>(下载后解压，点击lodop文件开始执行)"
+    var strLodop7HrefARM = "点击这里<a href='http://www.c-lodop.com/demolist/Lodop7_Linux_ARM64.tar.gz'  target='_self'>下载安装</a>(下载后解压，点击lodop文件开始执行)"
     var strLodop7Install_X86 = strLodop7FontTag + "未安装启动，" + strLodop7HrefX86
     var strLodop7Install_ARM = strLodop7FontTag + "未安装启动，" + strLodop7HrefARM
     var strLodop7Update_X86 = strLodop7FontTag + "需升级，" + strLodop7HrefX86
     var strLodop7Update_ARM = strLodop7FontTag + "需升级，" + strLodop7HrefARM
-    var strInstallOK = "，成功后请刷新本页面或重启浏览器。</font>"
+    var strInstallOK = "，成功后请刷新应用。</font>"
     var LODOP
     try {
         var isWinIE = (/MSIE/i.test(navigator.userAgent)) || (/Trident/i.test(navigator.userAgent))
@@ -136,7 +136,7 @@ export function getLodop(oOBJECT, oEMBED) {
             if (!LODOP && LoadJsState !== "complete") {
                 if (!LoadJsState)
                     alert("未曾加载Lodop主JS文件，请先调用loadCLodop过程."); else
-                    alert("网页还没下载完毕，请稍等一下再操作.")
+                    alert("应用还没下载完毕，请稍等一下再操作.")
                 return
             }
             var strAlertMessage
@@ -147,7 +147,9 @@ export function getLodop(oOBJECT, oEMBED) {
                     strAlertMessage = strLodop7Install_ARM
                 else
                     strAlertMessage = strCLodopInstallA + (CLodopIsLocal ? strCLodopInstallB : "")
-                document.body.innerHTML = strAlertMessage + strInstallOK + document.body.innerHTML
+                if (errCallback) {
+                    errCallback(strAlertMessage + strInstallOK)
+                }
                 return
             } else {
                 if (isLinuxX86 && LODOP.CVERSION < "7.0.7.5")
@@ -157,8 +159,9 @@ export function getLodop(oOBJECT, oEMBED) {
                 else if (CLODOP.CVERSION < "6.5.9.6")
                     strAlertMessage = strCLodopUpdate
 
-                if (strAlertMessage)
-                    document.body.innerHTML = strAlertMessage + strInstallOK + document.body.innerHTML
+                if (strAlertMessage && errCallback) {
+                    errCallback(strAlertMessage + strInstallOK)
+                }
             }
         } else {
             //==如果页面有Lodop插件就直接使用,否则新建:==
@@ -182,11 +185,15 @@ export function getLodop(oOBJECT, oEMBED) {
                 LODOP = CreatedOKLodopObject
             //==Lodop插件未安装时提示下载地址:==
             if ((!LODOP) || (!LODOP.VERSION)) {
-                document.body.innerHTML = (isWinIE64 ? strLodop64Install : strLodopInstall) + strInstallOK + document.body.innerHTML
+                if (errCallback) {
+                    errCallback((isWinIE64 ? strLodop64Install : strLodopInstall) + strInstallOK)
+                }
                 return LODOP
             }
             if (LODOP.VERSION < "6.2.2.6") {
-                document.body.innerHTML = (isWinIE64 ? strLodop64Update : strLodopUpdate) + strInstallOK + document.body.innerHTML
+                if (errCallback) {
+                    errCallback((isWinIE64 ? strLodop64Update : strLodopUpdate) + strInstallOK)
+                }
             }
         }
         //===如下空白位置适合调用统一功能(如注册语句、语言选择等):=======================

@@ -1,13 +1,15 @@
 import axios from 'axios'
+import router from "@/router";
+import {showToast} from '@/utils/common';
 
-const token = window.localStorage.getItem('token')
 //创建axios实例
 const request = axios.create({
-    baseURL: 'http://192.168.0.30:81',
+    baseURL: 'http://192.168.0.197',
     timeout: 5000,
 })
 //请求拦截
 request.interceptors.request.use((config) => {
+    const token = window.localStorage.getItem('token')
     if (token) {
         config.headers.Authorization = token
     }
@@ -17,13 +19,21 @@ request.interceptors.request.use((config) => {
 //响应拦截
 request.interceptors.response.use((response) => {
     const res = response.data;
-    if (res.state === 'ok') {
-        if (response.headers.authorization) {
-            window.localStorage.setItem('token', response.headers.authorization)
-        }
-        return res;
+    if (res.code == 511) {
+        showToast('登录失效，请重新登录')
+        router.replace('/login')
     } else {
-        return Promise.reject(res);
+        if (res.state === 'ok') {
+            if (response.headers.authorization) {
+                res.headerToken = response.headers.authorization
+            }
+            return res;
+        } else {
+            if (res.msg || res.message) {
+                showToast(res.msg || res.message)
+            }
+            return Promise.reject(res);
+        }
     }
 }, (error) => {
     return Promise.reject(error)

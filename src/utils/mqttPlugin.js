@@ -28,10 +28,8 @@ export default function MqttPlugin(enableLog = false) {
                 url = `wx://${this.opt.host}/mqtt`;
                 this.opt.port = 80;
             }
-            // #ifdef H5
             url = `ws://${this.opt.host}/mqtt`;
             this.opt.port = opt.port;
-            // #endif
             this.client = mqtt.connect(url, this.opt);
             this.client.on('connect', e => {
                 log('mqtt连接成功');

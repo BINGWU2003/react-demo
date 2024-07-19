@@ -24,7 +24,7 @@ const router = useRouter()
 const version = ref('14.15.8')
 
 function updateVersion(){
-  router.push('/form')
+  router.push('/login')
 }
 </script>
 
@@ -53,7 +53,7 @@ function updateVersion(){
 }
 
 .login-page {
-  height: 100%;
+  min-height: 100%;
   text-align: center;
   padding: 50px 20px 0;
   box-sizing: border-box;
@@ -66,7 +66,7 @@ function updateVersion(){
   border-radius: 8px;
   padding: 20px;
   margin: 20px 0;
-  min-height: calc(100% - 120px);
+  min-height: calc(100vh - 160px);
 }
 
 </style>

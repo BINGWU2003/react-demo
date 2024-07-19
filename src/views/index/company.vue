@@ -10,7 +10,7 @@
         <div class="cu-item cu-shadow">
           <div class="top" @click="toLogin(item.sysCompany.id,item.user.status)">
             <div class="left radius">
-              <img style="width: 100%;" src="@/assets/empty.png"></img>
+              <span class="icon-mes gongsijieshao text-white" style="font-size: 55px;"></span>
             </div>
             <div class="center">
               <div class="company-label">{{ item.sysCompany.name }}</div>
