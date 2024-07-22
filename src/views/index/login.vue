@@ -10,29 +10,55 @@
       <span class="password-icon" :class="showPassword?'cuIcon-attention':'cuIcon-attentionfill'"
             @click="showPassword = !showPassword"></span>
     </div>
-
+    <div class="form-item">
+      <input type="text" class="form-item-input" v-model="baseUrl" placeholder="请输入服务地址"
+             v-if="props.showSwitch > 5"/>
+    </div>
     <button class="login-btn" @click="confirmLogin">登录</button>
 
   </div>
 </template>
 
 <script setup>
-import {ref} from 'vue'
+import {ref, defineProps} from 'vue'
 import {phoneLogin} from '@/axios/api/login'
 import {useRouter} from 'vue-router'
 import {showToast} from '@/utils/common'
+import devConfig from '@/common/devConfig.js'
 
 const router = useRouter()
+
+const props = defineProps(['showSwitch'])
 
 let showPassword = ref(false)
 
 const form = ref({
   userAccount: '',
-  userPassword: ''
+  userPassword: '',
+  deviceId: ''
 })
 
-function confirmLogin() {
+let baseUrl = ref('')
+baseUrl.value = window.sessionStorage.getItem('baseUrl') || devConfig.baseUrl
 
+function setBaseUrl(baseUrlVal) {
+  if (!baseUrlVal) {
+    return;
+  }
+  let baseUrl = baseUrlVal;
+  if (!baseUrl.startsWith('http')) {
+    // 前缀自动补充 ip为http://  域名为https://
+    let reg = /^[0-9]+.?[0-9]*$/;
+    if (reg.test(baseUrl.substring(0, 1))) {
+      baseUrl = 'http://' + baseUrl;
+    } else {
+      baseUrl = 'https://' + baseUrl;
+    }
+  }
+  window.sessionStorage.setItem('baseUrl', baseUrl)
+}
+
+function confirmLogin() {
   if (!form.value.userAccount) {
     showToast('请输入密码')
     return
@@ -41,6 +67,8 @@ function confirmLogin() {
     showToast('请输入邮箱或手机号')
     return
   }
+  setBaseUrl(baseUrl.value)
+  form.value.deviceId = window.localStorage.getItem('uuid')
   phoneLogin(form.value).then(res => {
     window.localStorage.setItem('token', res.headerToken)
     router.push('/company')

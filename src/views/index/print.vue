@@ -85,7 +85,9 @@ function connectMqtt() {
     username: 'iipmes',
     password: 'iipmes',
   })
-  newMqtt.sub('/mqtt_backend', (res) => {
+  const topic = '/mqtt_backend/'
+  const topic1 = `/device/print/${window.localStorage.getItem('uuid')}`
+  newMqtt.sub(topic, (res) => {
     if (!res.contentUrl) return
     let LODOP = getLodop(null, null, errCallback);
     LODOP.PRINT_INIT("打印控件功能演示_Lodop功能_按网址打印", res.contentUrl);

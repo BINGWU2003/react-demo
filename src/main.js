@@ -8,8 +8,9 @@ import router from './router/index'
 const app = createApp(App)
 
 //唯一标识
-console.log(uuid())
-window.localStorage.setItem('uuid', uuid())
+if (!window.localStorage.getItem('uuid')) {
+    window.localStorage.setItem('uuid', uuid())
+}
 
 //路由
 app.use(router)

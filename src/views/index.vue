@@ -1,12 +1,12 @@
 <template>
   <div class="login-page">
     <div class="window-header">
-      <div class="main-title">智衣通</div>
+      <div class="main-title" @click="showDevUrlSwich">智衣通</div>
       <div class="tip-title">欢迎使用</div>
     </div>
 
     <div class="main">
-      <router-view></router-view>
+      <router-view :showSwitch="showSwitch"></router-view>
     </div>
 
     <div style="font-size: 12px">
@@ -18,13 +18,20 @@
 
 <script setup>
 import {ref} from 'vue'
-import { useRouter } from 'vue-router'
+import {useRouter} from 'vue-router'
+
 const router = useRouter()
 
 const version = ref('14.15.8')
 
-function updateVersion(){
+function updateVersion() {
   router.push('/login')
+}
+
+let showSwitch = ref(0)
+
+function showDevUrlSwich() {
+  showSwitch.value++
 }
 </script>
 
@@ -58,7 +65,7 @@ function updateVersion(){
   padding: 50px 20px 0;
   box-sizing: border-box;
   background-image: url("@/assets/background.svg");
-  background-size:  100vw auto;
+  background-size: 100vw auto;
 }
 
 .main {
