@@ -136,7 +136,7 @@ const connectMqtt = () => {
     password: 'iipmes',
   })
   // const topic = '/mqtt_backend/'
-  const topic1 = `/device/print/${window.localStorage.getItem('uuid')}`
+  const topic1 = `/device/print/${window.localStorage.getItem('mac-address')}`
   newMqtt.sub(topic1, (res) => {
     if (!res.contentUrl) return
     let LODOP = getLodop(null, null, errCallback)

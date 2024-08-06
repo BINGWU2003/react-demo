@@ -6,9 +6,9 @@
       <p>请使用左上角扫一扫，扫描公司二维码申请加入或者搜索公司加入</p>
     </div>
     <div>
-      <div class="cu-card" v-for="(item,i) in companyList" :key="i" v-show="companyList.length">
+      <div class="cu-card" v-for="(item, i) in companyList" :key="i" v-show="companyList.length">
         <div class="cu-item cu-shadow">
-          <div class="top" @click="toLogin(item.sysCompany.id,item.user.status)">
+          <div class="top" @click="toLogin(item.sysCompany.id, item.user.status)">
             <div class="left radius">
               <span class="icon-mes gongsijieshao text-white" style="font-size: 55px;"></span>
             </div>
@@ -19,7 +19,7 @@
               </div>
             </div>
             <div class="right">
-              <div class="cu-tag bg-red" v-show="item.user.status==10">已离职</div>
+              <div class="cu-tag bg-red" v-show="item.user.status == 10">已离职</div>
               <span class="cuIcon-roundright text-orange"></span>
             </div>
           </div>
@@ -34,23 +34,23 @@
 </template>
 
 <script setup>
-import {onMounted, ref} from 'vue'
-import {searchCompanies, loginCompany} from '@/axios/api/login'
+import { onMounted, ref } from 'vue'
+import { searchCompanies, loginCompany } from '@/axios/api/login'
 
-import {useRouter} from 'vue-router'
+import { useRouter } from 'vue-router'
 
 const router = useRouter()
 const companyList = ref([])
 
 function getJoinCompany() {
   searchCompanies().then(res => {
-    companyList.value = res.data;
+    companyList.value = res.data
   })
 }
 
 function toLogin(cid, status) {
   if (status == 10) {
-    this.kit.toast('您已离职,已不能进入该公司');
+    this.kit.toast('您已离职,已不能进入该公司')
     return
   }
   loginCompany(cid).then(res => {
