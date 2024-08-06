@@ -82,9 +82,8 @@ const loginOut = () => {
 
 const handlePrint = (htmlData, length) => {
   return new Promise(async (resolve, reject) => {
-    let printDeviceName = selectValue.value
+    const printDeviceName = selectValue.value
     if (!printDeviceName) {
-      errCallback('请选择打印机')
       reject('请选择打印机')
       return
     }
@@ -98,13 +97,13 @@ const handlePrint = (htmlData, length) => {
     // 截至到哪一页停止打印
     LODOP.SET_PRINT_MODE("PRINT_END_PAGE", length)
     // 根据选择的打印设备来打印
-    const isExist = printDeviceList.value.indexOf(printDeviceName)
-    if (isExist === -1) {
-      errCallback('打印设备不存在')
+    printDeviceList.value = getPrintDevice()
+    const printDeviceIndex = printDeviceList.value.indexOf(printDeviceName)
+    if (printDeviceIndex === -1) {
       reject('打印设备不存在')
       return
     }
-    LODOP.SET_PRINTER_INDEXA(printDeviceList.value.indexOf(printDeviceName))
+    LODOP.SET_PRINTER_INDEXA(printDeviceIndex)
     // LODOP.PREVIEW()
     LODOP.PRINT()
     resolve()
