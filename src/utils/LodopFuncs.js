@@ -135,9 +135,12 @@ export function getLodop(oOBJECT, oEMBED, errCallback) {
             }
             if (!LODOP && LoadJsState !== "complete") {
                 if (!LoadJsState)
-                    alert("未曾加载Lodop主JS文件，请先调用loadCLodop过程."); else
-                    alert("应用还没下载完毕，请稍等一下再操作.")
-                return
+                    // alert("未曾加载Lodop主JS文件，请先调用loadCLodop过程."); else
+                    // alert("应用还没下载完毕，请稍等一下再操作.")
+                    console.log("未曾加载Lodop主JS文件，请先调用loadCLodop过程.")
+                console.log('应用还没下载完毕，请稍等一下再操作.')
+
+                return null
             }
             var strAlertMessage
             if (!LODOP) {
@@ -197,12 +200,14 @@ export function getLodop(oOBJECT, oEMBED, errCallback) {
             }
         }
         //===如下空白位置适合调用统一功能(如注册语句、语言选择等):=======================
-        LODOP.SET_LICENSES("", "EE0887D00FCC7D29375A695F728489A6", "C94CEE276DB2187AE6B65D56B3FC2848", "");
+        LODOP.SET_LICENSES("", "EE0887D00FCC7D29375A695F728489A6", "C94CEE276DB2187AE6B65D56B3FC2848", "")
 
         //===============================================================================
         return LODOP
     } catch (err) {
-        alert("getLodop出错:" + err)
+        // alert("getLodop出错:" + err)
+        console.log('getLodop出错:', err)
+        return null
     }
 }
 

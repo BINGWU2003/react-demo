@@ -1,3 +1,12 @@
+<!--
+ * @Author: BINGWU
+ * @Date: 2024-07-23 10:28:06
+ * @LastEditors: hujiacheng hujiacheng@iipcloud.com
+ * @LastEditTime: 2024-08-06 16:09:29
+ * @FilePath: \print_client_service\src\views\index.vue
+ * @Describe: 
+ * @Mark: ૮(˶ᵔ ᵕ ᵔ˶)ა
+-->
 <template>
   <div class="login-page">
     <div class="window-header">
@@ -25,7 +34,7 @@ const router = useRouter()
 const version = ref('14.15.8')
 
 function updateVersion() {
-  router.push('/login')
+  // router.push('/login')
 }
 
 let showSwitch = ref(0)

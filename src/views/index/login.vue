@@ -23,6 +23,7 @@ import { ref, onMounted } from 'vue'
 import { phoneLogin } from '@/axios/api/login'
 import { useRouter } from 'vue-router'
 import { showToast } from '@/utils/common'
+import { loadCLodop } from '@/utils/LodopFuncs'
 import devConfig from '@/common/devConfig.js'
 
 const router = useRouter()
@@ -82,6 +83,8 @@ onMounted(async () => {
     const macAddress = await window.electron.getMacAddress()
     window.localStorage.setItem('mac-address', macAddress)
   }
+  // 初始化lodop
+  loadCLodop()
 })
 </script>
 

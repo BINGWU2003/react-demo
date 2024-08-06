@@ -43,15 +43,16 @@
 </template>
 
 <script setup>
-import { onMounted, ref, computed, onUnmounted } from 'vue'
+import { onMounted, ref, computed, onUnmounted, h } from 'vue'
 import { useRouter } from 'vue-router'
 import { getUserDetail } from '@/axios/api/login'
 import { printerStatusReport } from '@/axios/api/print'
-import { loadCLodop, getLodop } from '@/utils/LodopFuncs'
+import { getLodop, loadCLodop } from '@/utils/LodopFuncs'
 import MqttPlugin from '@/utils/mqttPlugin'
 import generateHtml from '@/utils/generateHtml'
 import Loading from '@/components/loading/index.vue'
 import { p1, p2 } from '@/utils/test'
+import { workOrderCuttingInfo } from '@/axios/api/print'
 let LODOP = null
 const router = useRouter()
 const selectValue = ref('')
@@ -91,7 +92,6 @@ const handlePrint = (htmlData, length) => {
       reject('请选择打印机')
       return
     }
-    LODOP = getLodop(null, null, errCallback)
     // 自定义设置纸张大小
     LODOP.SET_PRINT_PAGESIZE(1, 425, 800, "CreateCustomPage")
     // 打印html
@@ -104,7 +104,7 @@ const handlePrint = (htmlData, length) => {
     printDeviceList.value = getPrintDevice()
     const printDeviceIndex = printDeviceList.value.indexOf(printDeviceName)
     if (printDeviceIndex === -1) {
-      reject('打印设备不存在')
+      reject('打印设备不存在,请检查打印机是否连接')
       return
     }
     LODOP.SET_PRINTER_INDEXA(printDeviceIndex)
@@ -137,14 +137,10 @@ const connectMqtt = () => {
   })
   // const topic = '/mqtt_backend/'
   const topic1 = `/device/print/${window.localStorage.getItem('mac-address')}`
-  newMqtt.sub(topic1, (res) => {
+  newMqtt.sub(topic1, async (res) => {
     if (!res.contentUrl) return
-    let LODOP = getLodop(null, null, errCallback)
-    LODOP.PRINT_INIT("打印控件功能演示_Lodop功能_按网址打印", res.contentUrl)
-    LODOP.ADD_PRINT_URL(30, 20, 746, "95%",)
-    LODOP.SET_PRINT_STYLEA(0, "HOrient", 3)
-    LODOP.SET_PRINT_STYLEA(0, "VOrient", 3)
-    LODOP.PRINT()
+    const [htmlData, length] = await generateHtml(p1, p2)
+    handlePrint(htmlData, length)
   })
 }
 
@@ -168,18 +164,21 @@ const getPrintDevice = () => {
 }
 
 onMounted(async () => {
-  showLoading.value = true
   try {
     const res = await getUserDetail()
     userInfo.value = res.data
   } catch (error) {
     errCallback(error.msg)
   }
-  await waitLoadingLodop()
   LODOP = getLodop(null, null, errCallback)
+  if (!LODOP) {
+    // 如果lodop未加载成功，等待lodop加载成功
+    await waitLoadingLodop()
+    LODOP = getLodop(null, null, errCallback)
+  }
   printDeviceList.value = getPrintDevice()
   connectMqtt()
-  showLoading.value = false
+  workOrderCuttingInfo()
 })
 
 onUnmounted(() => {
