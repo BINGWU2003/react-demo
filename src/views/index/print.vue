@@ -1,16 +1,17 @@
 <template>
   <div class="print-page">
-    <!--    <div class="tip-box"></div>-->
     <div style="width: 100%">
       <div class="header">
-<!--        <img src="@/assets/vue.svg" alt=""/>-->
         <img src="http://cdn.iipcloud.com/20191216117714588.png" alt=""/>
         <div>
           <div>{{ userInfo.user_name }} <a @click="loginOut">退出登录</a></div>
           <div>{{ userInfo.phone }}</div>
         </div>
       </div>
-      <div style="text-align: left">{{ userInfo.cid }}</div>
+      <div style="text-align: left;font-size: 18px;">{{ userInfo.cid }}</div>
+      <div class="select-device">
+        
+      </div>
     </div>
     <img src="@/assets/logo.png" alt="" class="main-img"/>
     <div style="font-weight: 600;color: #828282;">可以通过智衣通小程序发起打印</div>
@@ -62,6 +63,8 @@ const timeouter = setInterval(() => {
 function getUseInfo() {
   getUserDetail().then(res => {
     userInfo.value = res.data
+    console.log(res.data);
+    
     connectMqtt()
   })
 }
