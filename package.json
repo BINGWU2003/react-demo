@@ -12,6 +12,7 @@
     "axios": "^1.7.2",
     "mqtt": "^5.8.0",
     "vue": "^3.4.31",
+    "vue-plugin-hiprint": "^0.0.56",
     "vue-router": "^4.4.0"
   },
   "devDependencies": {
