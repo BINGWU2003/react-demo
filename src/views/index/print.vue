@@ -38,6 +38,8 @@
       </div>
     </div>
   </div>
+
+  <Loading :showLoading="showLoading"> </Loading>
 </template>
 
 <script setup>
@@ -48,11 +50,13 @@ import { printerStatusReport } from '@/axios/api/print'
 import { loadCLodop, getLodop } from '@/utils/LodopFuncs'
 import MqttPlugin from '@/utils/mqttPlugin'
 import generateHtml from '@/utils/generateHtml'
+import Loading from '@/components/loading/index.vue'
 import { p1, p2 } from '@/utils/test'
 let LODOP = null
 const router = useRouter()
 const selectValue = ref('')
 const printDeviceList = ref([])
+const showLoading = ref(false)
 const userInfo = ref({
   cid: '',
   phone: '',
@@ -164,6 +168,7 @@ const getPrintDevice = () => {
 }
 
 onMounted(async () => {
+  showLoading.value = true
   try {
     const res = await getUserDetail()
     userInfo.value = res.data
@@ -174,6 +179,7 @@ onMounted(async () => {
   LODOP = getLodop(null, null, errCallback)
   printDeviceList.value = getPrintDevice()
   connectMqtt()
+  showLoading.value = false
 })
 
 onUnmounted(() => {
