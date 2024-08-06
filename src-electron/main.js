@@ -1,3 +1,12 @@
+/*
+ * @Author: BINGWU
+ * @Date: 2024-07-23 10:28:06
+ * @LastEditors: hujiacheng hujiacheng@iipcloud.com
+ * @LastEditTime: 2024-08-06 11:11:51
+ * @FilePath: \print_client_service\src-electron\main.js
+ * @Describe: 
+ * @Mark: ૮(˶ᵔ ᵕ ᵔ˶)ა
+ */
 const { app, BrowserWindow } = require('electron')
 const { join } = require('path')
 
@@ -8,8 +17,8 @@ process.env['ELECTRON_DISABLE_SECURITY_WARNINGS'] = 'true'
 // 创建浏览器窗口时，调用这个函数。
 const createWindow = () => {
     const win = new BrowserWindow({
-        width: 800,
-        height: 600,
+        width: 464,
+        height: 557,
         icon: join(__dirname, '../src/assets/logo.png'),
     })
 
