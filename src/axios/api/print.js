@@ -38,20 +38,3 @@ export function workOrderCuttingInfoPrintNoCode() {
         method: "GET"
     })
 }
-
-// 获取打印数据
-export function getPrintTicketData(cuttingInfoId, batchPrint = true) {
-    return request({
-        url: "/workOrder/cutting/getPrintTicketData",
-        method: "POST",
-        params: { cuttingInfoId, batchPrint }
-    })
-}
-// 获取打印数据 如果选择了部位
-export function getPrintTicketDataWithoutQrCode(cuttingInfoId, parts, printCopies = 1) {
-    return request({
-        url: "/workOrder/cutting/getPrintTicketDataWithoutQrCode",
-        method: "POST",
-        params: { cuttingInfoId, parts, printCopies }
-    })
-}
