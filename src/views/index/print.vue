@@ -52,7 +52,7 @@ import MqttPlugin from '@/utils/mqttPlugin'
 import generateHtml from '@/utils/generateHtml'
 import Loading from '@/components/loading/index.vue'
 import { p1, p2 } from '@/utils/test'
-import { workOrderCuttingInfo } from '@/axios/api/print'
+import { workOrderCuttingInfo, workOrderCuttingInfoPrintNoCode } from '@/axios/api/print'
 let LODOP = null
 const router = useRouter()
 const selectValue = ref('')
@@ -108,6 +108,8 @@ const handlePrint = (htmlData, length) => {
       return
     }
     LODOP.SET_PRINTER_INDEXA(printDeviceIndex)
+    // 打印份数
+    // LODOP.SET_PRINT_COPIES(2);
     // LODOP.PREVIEW()
     LODOP.PRINT()
     resolve()
@@ -179,6 +181,7 @@ onMounted(async () => {
   printDeviceList.value = getPrintDevice()
   connectMqtt()
   workOrderCuttingInfo()
+  workOrderCuttingInfoPrintNoCode()
 })
 
 onUnmounted(() => {
