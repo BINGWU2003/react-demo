@@ -85,7 +85,7 @@ const loginOut = () => {
   router.replace('/login')
 }
 
-const handlePrint = (htmlData, length) => {
+const handlePrint = (htmlData, length, printCopies = 1) => {
   return new Promise(async (resolve, reject) => {
     const printDeviceName = selectValue.value
     if (!printDeviceName) {
@@ -109,7 +109,7 @@ const handlePrint = (htmlData, length) => {
     }
     LODOP.SET_PRINTER_INDEXA(printDeviceIndex)
     // 打印份数
-    // LODOP.SET_PRINT_COPIES(2);
+    LODOP.SET_PRINT_COPIES(printCopies)
     // LODOP.PREVIEW()
     LODOP.PRINT()
     resolve()
