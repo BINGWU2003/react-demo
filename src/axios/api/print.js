@@ -40,10 +40,10 @@ export function workOrderCuttingInfoPrintNoCode() {
 }
 
 // 获取打印数据 
-export function getPrintTicketDataWithoutQrCode(cuttingInfoId, parts, printCopies = 1) {
+export function getPrintTicketDataWithoutQrCode(cuttingInfoId, parts) {
     return request({
         url: "/workOrder/cutting/getPrintTicketDataWithoutQrCode",
         method: "POST",
-        params: { cuttingInfoId, parts, printCopies }
+        params: { cuttingInfoId, parts, printCopies: 1 }
     })
 }
