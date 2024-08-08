@@ -1,4 +1,13 @@
-import { createRouter, createWebHistory } from 'vue-router'
+/*
+ * @Author: BINGWU
+ * @Date: 2024-07-23 10:28:06
+ * @LastEditors: hujiacheng hujiacheng@iipcloud.com
+ * @LastEditTime: 2024-08-08 14:11:04
+ * @FilePath: \print_client_service\src\router\index.js
+ * @Describe: 
+ * @Mark: ૮(˶ᵔ ᵕ ᵔ˶)ა
+ */
+import { createRouter, createWebHashHistory } from 'vue-router'
 
 // 导入路由页面的配置
 import routes from './routes'
@@ -6,7 +15,7 @@ import routes from './routes'
 // 路由参数配置
 const router = createRouter({
     // 使用hash(createWebHashHistory)模式，(createWebHistory是HTML5历史模式，支持SEO)
-    history: createWebHistory(),
+    history: createWebHashHistory(),
     routes: routes,
 })
 
