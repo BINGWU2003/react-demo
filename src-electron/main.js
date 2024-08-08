@@ -2,21 +2,21 @@
  * @Author: BINGWU
  * @Date: 2024-07-23 10:28:06
  * @LastEditors: hujiacheng hujiacheng@iipcloud.com
- * @LastEditTime: 2024-08-06 15:44:59
+ * @LastEditTime: 2024-08-08 10:46:40
  * @FilePath: \print_client_service\src-electron\main.js
  * @Describe: 
  * @Mark: ૮(˶ᵔ ᵕ ᵔ˶)ა
  */
-const { app, BrowserWindow, ipcMain } = require('electron')
+const { app, BrowserWindow, Tray, Menu, ipcMain } = require('electron')
 const { join } = require('path')
 const os = require('os')
-// 屏蔽安全警告
-// ectron Security Warning (Insecure Content-Security-Policy)
-process.env['ELECTRON_DISABLE_SECURITY_WARNINGS'] = 'true'
+const AutoLaunch = require('auto-launch')
 
-// 创建浏览器窗口时，调用这个函数。
-const createWindow = () => {
-    const win = new BrowserWindow({
+let mainWindow
+let tray
+
+function createWindow() {
+    mainWindow = new BrowserWindow({
         width: 464,
         height: 557,
         icon: join(__dirname, '../src/assets/logo.png'),
@@ -25,30 +25,76 @@ const createWindow = () => {
             contextIsolation: true,
             enableRemoteModule: false,
             nodeIntegration: false
+        },
+        show: false
+    })
+
+    if (process.env.VITE_DEV_SERVER_URL) {
+        mainWindow.loadURL(process.env.VITE_DEV_SERVER_URL)
+        // 开启调试台
+        mainWindow.webContents.openDevTools()
+    } else {
+        mainWindow.loadFile(join(__dirname, '../dist/index.html'))
+    }
+    mainWindow.on('close', (event) => {
+        if (!app.isQuiting) {
+            event.preventDefault()
+            mainWindow.hide()
+            event.returnValue = false
         }
     })
-
-    // win.loadURL('http://localhost:3000')
-    // development模式
-    if (process.env.VITE_DEV_SERVER_URL) {
-        win.loadURL(process.env.VITE_DEV_SERVER_URL)
-        // 开启调试台
-        win.webContents.openDevTools()
-    } else {
-        win.loadFile(join(__dirname, '../dist/index.html'))
-    }
 }
 
-// Electron 会在初始化后并准备
-app.whenReady().then(() => {
-    createWindow()
-    app.on('activate', () => {
-        if (BrowserWindow.getAllWindows().length === 0) createWindow()
+function createTray() {
+    tray = new Tray(join(__dirname, 'logo.png')) // 替换为你的托盘图标路径
+    const contextMenu = Menu.buildFromTemplate([
+        {
+            label: '显示', click: () => {
+                mainWindow.show()
+            }
+        },
+        {
+            label: '退出', click: () => {
+                app.isQuiting = true
+                app.quit()
+            }
+        }
+    ])
+
+    tray.setToolTip('智衣通')
+    tray.setContextMenu(contextMenu)
+
+    tray.on('click', () => {
+        mainWindow.show()
     })
+}
+
+app.on('ready', () => {
+    createWindow()
+    createTray()
 })
 
 app.on('window-all-closed', () => {
-    if (process.platform !== 'darwin') app.quit()
+    if (process.platform !== 'darwin') {
+        app.quit()
+    }
+})
+
+app.on('activate', () => {
+    if (mainWindow === null) {
+        createWindow()
+    }
+})
+
+// 设置开机启动
+const autoLauncher = new AutoLaunch({
+    name: app.getName(),
+    path: app.getPath('exe')
+})
+autoLauncher.isEnabled().then((isEnabled) => {
+    if (!isEnabled) {
+        autoLauncher.enable()
+    }
 })
 
 ipcMain.handle('get-mac-address', async () => {
@@ -66,5 +112,5 @@ ipcMain.handle('get-mac-address', async () => {
 
 // 处理获取电脑名称的请求
 ipcMain.handle('get-computer-name', () => {
-    return os.hostname();
-  });
+    return os.hostname()
+})
