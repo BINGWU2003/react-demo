@@ -170,7 +170,7 @@ onMounted(async () => {
     const res = await getUserDetail()
     userInfo.value = res.data
   } catch (error) {
-    errCallback(error.msg)
+    errCallback('获取用户数据失败')
   }
   LODOP = getLodop(null, null, errCallback)
   if (!LODOP) {
@@ -182,6 +182,8 @@ onMounted(async () => {
   connectMqtt()
   workOrderCuttingInfo()
   workOrderCuttingInfoPrintNoCode()
+
+  
 })
 
 onUnmounted(() => {

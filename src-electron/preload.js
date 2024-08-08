@@ -7,8 +7,9 @@
  * @Describe: 
  * @Mark: ૮(˶ᵔ ᵕ ᵔ˶)ა
  */
-const { contextBridge, ipcRenderer } = require('electron');
+const { contextBridge, ipcRenderer } = require('electron')
 
 contextBridge.exposeInMainWorld('electron', {
-  getMacAddress: () => ipcRenderer.invoke('get-mac-address')
-});
+  getMacAddress: () => ipcRenderer.invoke('get-mac-address'),
+  getComputerName: () => ipcRenderer.invoke('get-computer-name')
+})

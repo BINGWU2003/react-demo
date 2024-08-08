@@ -63,3 +63,8 @@ ipcMain.handle('get-mac-address', async () => {
     }
     throw new Error('MAC address not found')
 })
+
+// 处理获取电脑名称的请求
+ipcMain.handle('get-computer-name', () => {
+    return os.hostname();
+  });

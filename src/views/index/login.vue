@@ -83,6 +83,10 @@ onMounted(async () => {
     const macAddress = await window.electron.getMacAddress()
     window.localStorage.setItem('mac-address', macAddress)
   }
+  if (!window.localStorage.getItem('computer-name')) {
+    const computerName = await window.electron.getComputerName()
+    window.localStorage.setItem('computer-name', computerName)
+  }
   // 初始化lodop
   loadCLodop()
 })

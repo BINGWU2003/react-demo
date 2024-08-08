@@ -2,7 +2,7 @@
  * @Author: BINGWU
  * @Date: 2024-07-23 10:28:06
  * @LastEditors: hujiacheng hujiacheng@iipcloud.com
- * @LastEditTime: 2024-08-07 15:04:02
+ * @LastEditTime: 2024-08-08 09:17:27
  * @FilePath: \print_client_service\src\axios\api\print.js
  * @Describe: 
  * @Mark: ૮(˶ᵔ ᵕ ᵔ˶)ა
@@ -36,14 +36,5 @@ export function workOrderCuttingInfoPrintNoCode() {
     return request({
         url: "/print/getTemplate/cutting_info_print_no_code",
         method: "GET"
-    })
-}
-
-// 获取打印数据 
-export function getPrintTicketDataWithoutQrCode(cuttingInfoId, parts) {
-    return request({
-        url: "/workOrder/cutting/getPrintTicketDataWithoutQrCode",
-        method: "POST",
-        params: { cuttingInfoId, parts, printCopies: 1 }
     })
 }
