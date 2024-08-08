@@ -1,5 +1,5 @@
 {
-  "name": "electron-desktop-tool",
+  "name": "zhi-yi-tong",
   "private": true,
   "version": "1.0.0",
   "main": "./src-electron/main.js",
@@ -11,8 +11,8 @@
   },
   "build": {
     "productName": "智衣通",
-    "appId": "dyy.dongyuanwai",
-    "copyright": "dyy.dongyuanwai © 2024",
+    "appId": "com.zhi-yi-tong",
+    "copyright": "智衣通 © 2024",
     "compression": "maximum",
     "asar": true, 
     "directories": {
@@ -25,7 +25,7 @@
       "deleteAppDataOnUninstall": true,
       "createDesktopShortcut": true,
       "createStartMenuShortcut": true,
-      "shortcutName": "ElectronDeskTopTool"
+      "shortcutName": "智衣通"
     },
     "win": {
       "icon": "./public/logo.png",
