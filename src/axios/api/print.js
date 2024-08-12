@@ -2,39 +2,63 @@
  * @Author: BINGWU
  * @Date: 2024-07-23 10:28:06
  * @LastEditors: hujiacheng hujiacheng@iipcloud.com
- * @LastEditTime: 2024-08-08 09:17:27
+ * @LastEditTime: 2024-08-12 14:22:12
  * @FilePath: \print_client_service\src\axios\api\print.js
  * @Describe: 
  * @Mark: ૮(˶ᵔ ᵕ ᵔ˶)ა
  */
 import request from "../index"
 
-export function printerStatusReport(params) {
+
+export function register(params) {
     return request({
-        url: "/app/print/printerStatusReport",
+        url: "/app/remotePrint/register",
         method: "GET",
         params
     })
 }
 
-export function callback(params) {
+export function registerPrint(params) {
     return request({
-        url: "/app/print/callback",
+        url: "/app/remotePrint/registerPrint",
         method: "GET",
         params
     })
 }
-// 获取打印模板(带二维码)
-export function workOrderCuttingInfo() {
+
+export function getClientStatus() {
     return request({
-        url: "/print/getTemplate/work_order_cutting_info",
-        method: "GET"
+        url: "/app/remotePrint/getClientStatus",
+        method: "GET",
     })
 }
-// 获取打印模板(不带二维码)
-export function workOrderCuttingInfoPrintNoCode() {
+
+export function pushClientStatus(params) {
     return request({
-        url: "/print/getTemplate/cutting_info_print_no_code",
+        url: "/app/remotePrint/pushClientStatus",
+        method: "GET",
+        params
+    })
+}
+export function getPrintData(params) {
+    return request({
+        url: "/app/remotePrint/getPrintData",
+        method: "GET",
+        params
+    })
+}
+
+export function printCallback(params) {
+    return request({
+        url: "/app/remotePrint/printCallback",
+        method: "GET",
+        params
+    })
+}
+
+export function getMqttConfig() {
+    return request({
+        url: "/app/remotePrint/getMqttConfig",
         method: "GET"
     })
 }

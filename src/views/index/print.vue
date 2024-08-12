@@ -10,10 +10,9 @@
       </div>
       <div style="text-align: left;font-size: 18px;">{{ userInfo.cid }}</div>
       <div class="select-device">
-        <button @click="handleClick">click</button>
         <div class="tips">选择打印机</div>
         <select name="device" id="device" v-model="selectValue"
-          :style="{ color: statusColor, borderColor: statusColor }">
+          :style="{ color: statusColor, borderColor: statusColor }" @change="handleSelectChange">
 
           <option v-for="(item) in printDeviceList" :value="item" :style="{ color: statusColor }">{{ item
             }}
@@ -46,13 +45,11 @@
 import { onMounted, ref, computed, onUnmounted, h } from 'vue'
 import { useRouter } from 'vue-router'
 import { getUserDetail } from '@/axios/api/login'
-import { printerStatusReport } from '@/axios/api/print'
 import { getLodop, loadCLodop } from '@/utils/LodopFuncs'
 import MqttPlugin from '@/utils/mqttPlugin'
 import generateHtml from '@/utils/generateHtml'
 import Loading from '@/components/loading/index.vue'
-import { p1, p2 } from '@/utils/test'
-import { workOrderCuttingInfo, workOrderCuttingInfoPrintNoCode } from '@/axios/api/print'
+import { registerPrint, getClientStatus, getMqttConfig, pushClientStatus, getPrintData, printCallback } from '@/axios/api/print'
 let LODOP = null
 const router = useRouter()
 const selectValue = ref('')
@@ -66,25 +63,29 @@ const userInfo = ref({
 const statusColor = computed(() => {
   return selectValue.value ? '' : '#d9001b'
 })
-const timeouter = setInterval(() => {
-  printerStatusReport({
-    clientId: '',
-    status: '',
-    id: ''
-  })
-}, 30000)
+let timeouter = null
 const modalName = ref('')
 const msg = ref('')
 const errCallback = (newMag) => {
   modalName.value = 'Modal'
   msg.value = newMag
 }
-
+const mqttConfig = {
+  host: '',
+  port: '',
+  username: '',
+  password: '',
+}
 const loginOut = () => {
   window.localStorage.setItem('token', '')
   router.replace('/login')
 }
-
+const handleSelectChange = async (e) => {
+  await registerPrint({
+    printerName: e.target.value,
+    clientId: window.localStorage.getItem('mac-address')
+  })
+}
 const handlePrint = (htmlData, length, printCopies = 1) => {
   return new Promise(async (resolve, reject) => {
     const printDeviceName = selectValue.value
@@ -116,33 +117,52 @@ const handlePrint = (htmlData, length, printCopies = 1) => {
   })
 }
 
-const handleClick = async () => {
-  try {
-    const [htmlData, length] = await generateHtml(p1, p2)
-    await handlePrint(htmlData, length)
-  } catch (error) {
-    console.log(error)
-  }
-}
-
 const hideModal = () => {
   modalName.value = null
 }
 
 const connectMqtt = () => {
   const newMqtt = MqttPlugin()
-  newMqtt.init({
-    host: '192.168.0.188',
-    port: '8083',
-    username: 'iipmes',
-    password: 'iipmes',
-  })
-  // const topic = '/mqtt_backend/'
-  const topic1 = `/device/print/${window.localStorage.getItem('mac-address')}`
+  newMqtt.init(mqttConfig)
+  const topic1 = `/remote/print/${window.localStorage.getItem('mac-address')}`
   newMqtt.sub(topic1, async (res) => {
-    if (!res.contentUrl) return
-    const [htmlData, length] = await generateHtml(p1, p2)
-    handlePrint(htmlData, length)
+    console.log('message', res)
+    try {
+      if (res?.push) {
+        await pushClientStatus({
+          clientId: window.localStorage.getItem('mac-address'),
+          isPrint: res.push
+        })
+      }
+      if (res?.taskId) {
+        setTimeout(async () => {
+          try {
+            const resData = await getPrintData({
+              taskId: res.taskId
+            })
+
+            const [htmlData, length] = await generateHtml(resData.data.printTemplate.template_json, resData.data.workOrderTicketPrintVOS)
+            await handlePrint(htmlData, length)
+            printCallback({
+              taskId: res.taskId,
+              clientId: window.localStorage.getItem('mac-address'),
+              isSuccess: true,
+            })
+          } catch (error) {
+            const msg = error.msg || error
+            errCallback(msg)
+            printCallback({
+              taskId: res.taskId,
+              clientId: window.localStorage.getItem('mac-address'),
+              isSuccess: false,
+            })
+          }
+        }, 1000)
+      }
+    } catch (error) {
+      const msg = error.msg || error
+      errCallback(msg)
+    }
   })
 }
 
@@ -179,11 +199,15 @@ onMounted(async () => {
     LODOP = getLodop(null, null, errCallback)
   }
   printDeviceList.value = getPrintDevice()
+  const res = await getMqttConfig()
+  mqttConfig.host = res.data.host
+  mqttConfig.port = res.data.port
+  mqttConfig.username = res.data.user_name
+  mqttConfig.password = res.data.password
   connectMqtt()
-  workOrderCuttingInfo()
-  workOrderCuttingInfoPrintNoCode()
-
-  
+  setTimeout(() => {
+    getClientStatus()
+  }, 1000)
 })
 
 onUnmounted(() => {

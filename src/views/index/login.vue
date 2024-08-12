@@ -24,6 +24,7 @@ import { phoneLogin } from '@/axios/api/login'
 import { useRouter } from 'vue-router'
 import { showToast } from '@/utils/common'
 import { loadCLodop } from '@/utils/LodopFuncs'
+
 import devConfig from '@/common/devConfig.js'
 
 const router = useRouter()
@@ -58,7 +59,7 @@ function setBaseUrl(baseUrlVal) {
   window.sessionStorage.setItem('baseUrl', baseUrl)
 }
 
-function confirmLogin() {
+async function confirmLogin() {
   if (!form.value.userAccount) {
     showToast('请输入密码')
     return
@@ -69,12 +70,13 @@ function confirmLogin() {
   }
   setBaseUrl(baseUrl.value)
   form.value.deviceId = window.localStorage.getItem('mac-address')
-  phoneLogin(form.value).then(res => {
+  try {
+    const res =  await phoneLogin(form.value)
     window.localStorage.setItem('token', res.headerToken)
     router.push('/company')
-  }, error => {
+  } catch (error) {
     console.log(error)
-  })
+  }
 }
 
 onMounted(async () => {

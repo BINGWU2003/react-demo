@@ -2,9 +2,9 @@
  * @Author: BINGWU
  * @Date: 2024-08-02 11:16:08
  * @LastEditors: hujiacheng hujiacheng@iipcloud.com
- * @LastEditTime: 2024-08-02 13:59:36
+ * @LastEditTime: 2024-08-12 17:16:46
  * @FilePath: \print_client_service\src\utils\generateHtml.js
- * @Describe: p1,p2为两个异步请求，p1为获取模板json，p2为获取数据json
+ * @Describe: 
  * @Mark: ૮(˶ᵔ ᵕ ᵔ˶)ა
  */
 import rootHtml from "@/utils/rootHtml"
@@ -34,7 +34,7 @@ const modifyHeight = (jsonString) => {
   // 将修改后的对象转换回 JSON 字符串
   return JSON.stringify(jsonObject)
 }
-const generateHtml = async (p1, p2) => {
+const generateHtml = async (template_json, recordList) => {
   const buildPreviewHtml = (templateJson, recordList) => {
     let printTemplate = new hiprint.PrintTemplate({
       template: templateJson,
@@ -43,14 +43,12 @@ const generateHtml = async (p1, p2) => {
   }
 
   try {
-    const [res1, res2] = await Promise.all([p1, p2])
-    let templateJson = JSON.parse(modifyHeight(res1.data.template_json), function (k, v) {
+    let templateJson = JSON.parse(modifyHeight(template_json), function (k, v) {
       if (typeof (v) == 'string') {
         return unescape(v)
       }
       return v
     })
-    let recordList = res2.data
     return [rootHtml(buildPreviewHtml(templateJson, recordList)), recordList.length]
   } catch (error) {
     console.log('error', error)

@@ -8,5 +8,5 @@
  * @Mark: ૮(˶ᵔ ᵕ ᵔ˶)ა
  */
 export default {
-    baseUrl: import.meta.env.MODE === 'development' ? 'http://192.168.0.158' : 'https://mgy.iipcloud.com'
+    baseUrl: import.meta.env.MODE === 'development' ? 'http://192.168.0.30' : 'https://mgy.iipcloud.com'
 }

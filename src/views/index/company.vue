@@ -36,7 +36,7 @@
 <script setup>
 import { onMounted, ref } from 'vue'
 import { searchCompanies, loginCompany } from '@/axios/api/login'
-
+import { register } from '@/axios/api/print'
 import { useRouter } from 'vue-router'
 
 const router = useRouter()
@@ -53,8 +53,11 @@ function toLogin(cid, status) {
     this.kit.toast('您已离职,已不能进入该公司')
     return
   }
-  loginCompany(cid).then(res => {
+  loginCompany(cid).then(async res => {
     window.localStorage.setItem('token', res.data.token)
+    await register({
+      clientId: window.localStorage.getItem('mac-address')
+    })
     router.push('/print')
   })
 }
