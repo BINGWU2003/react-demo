@@ -124,7 +124,7 @@ const hideModal = () => {
 const connectMqtt = () => {
   const newMqtt = MqttPlugin()
   newMqtt.init(mqttConfig)
-  const topic1 = `/remote/print/${window.localStorage.getItem('mac-address')}`
+  const topic1 = `/device/print/${window.localStorage.getItem('mac-address')}/${window.localStorage.getItem('cid')}`
   newMqtt.sub(topic1, async (res) => {
     console.log('message', res)
     try {

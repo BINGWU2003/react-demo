@@ -55,6 +55,7 @@ function toLogin(cid, status) {
   }
   loginCompany(cid).then(async res => {
     window.localStorage.setItem('token', res.data.token)
+    window.localStorage.setItem('cid', res.data.user.cid)
     await register({
       clientId: window.localStorage.getItem('mac-address')
     })

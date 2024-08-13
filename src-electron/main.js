@@ -2,7 +2,7 @@
  * @Author: BINGWU
  * @Date: 2024-07-23 10:28:06
  * @LastEditors: hujiacheng hujiacheng@iipcloud.com
- * @LastEditTime: 2024-08-13 13:55:51
+ * @LastEditTime: 2024-08-13 14:10:16
  * @FilePath: \print_client_service\src-electron\main.js
  * @Describe: 
  * @Mark: ૮(˶ᵔ ᵕ ᵔ˶)ა
@@ -78,9 +78,12 @@ app.on('ready', () => {
     })
     autoLauncher.isEnabled().then((isEnabled) => {
         if (!isEnabled) {
-            autoLauncher.enable()
+            // 如果未启用，则启用开机自启动
+            autoLauncher.enable();
         }
-    })
+    }).catch((err) => {
+        console.error('Error checking auto-launch status:', err);
+    });
     createTray()
 })
 
