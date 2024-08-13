@@ -14,7 +14,20 @@
       <input type="text" class="form-item-input" v-model="baseUrl" placeholder="请输入服务地址" v-if="props.showSwitch > 5" />
     </div>
     <button class="login-btn" @click="confirmLogin">登录</button>
+    <div class="click-area" @click="handleClick">
 
+    </div>
+    <div class="cu-modal" :class="modalName == 'Modal' ? 'show' : ''">
+    <div class="cu-dialog">
+      <div class="cu-bar bg-white justify-end">
+        <div class="content">提示</div>
+        <div class="action" @click="hideModal">
+        </div>
+      </div>
+      <div class="padding-xl" v-html="'切换到测试环境'">
+      </div>
+    </div>
+  </div>
   </div>
 </template>
 
@@ -28,15 +41,14 @@ import { loadCLodop } from '@/utils/LodopFuncs'
 import devConfig from '@/common/devConfig.js'
 
 const router = useRouter()
-
+const clickCount = ref(0)
 const props = defineProps(['showSwitch'])
-
+const modalName = ref('')
 let showPassword = ref(false)
 
 const form = ref({
   userAccount: '',
   userPassword: '',
-  deviceId: ''
 })
 
 let baseUrl = ref('')
@@ -69,16 +81,24 @@ async function confirmLogin() {
     return
   }
   setBaseUrl(baseUrl.value)
-  form.value.deviceId = window.localStorage.getItem('mac-address')
   try {
-    const res =  await phoneLogin(form.value)
+    const res = await phoneLogin(form.value)
     window.localStorage.setItem('token', res.headerToken)
     router.push('/company')
   } catch (error) {
     console.log(error)
   }
 }
-
+const handleClick = () => {
+  clickCount.value++
+  if (clickCount.value === 5) {
+    window.sessionStorage.setItem('baseUrl', 'https://zyw.iipcloud.com')
+    modalName.value = 'Modal'
+    setTimeout(() => {
+      window.location.reload()
+    }, 1000)
+  }
+}
 onMounted(async () => {
   //唯一标识
   if (!window.localStorage.getItem('mac-address')) {
@@ -122,5 +142,13 @@ onMounted(async () => {
   width: 100%;
   color: #fff;
   outline: none;
+}
+
+.click-area {
+  height: 100px;
+  width: 100px;
+  margin: 0 auto;
+  margin-top: 20px;
+  background-color: red;
 }
 </style>
