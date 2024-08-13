@@ -49,7 +49,7 @@ import { getLodop, loadCLodop } from '@/utils/LodopFuncs'
 import MqttPlugin from '@/utils/mqttPlugin'
 import generateHtml from '@/utils/generateHtml'
 import Loading from '@/components/loading/index.vue'
-import { registerPrint, getClientStatus, getMqttConfig, pushClientStatus, getPrintData, printCallback } from '@/axios/api/print'
+import { registerPrint, getMqttConfig, pushClientStatus, getPrintData, printCallback } from '@/axios/api/print'
 let LODOP = null
 const router = useRouter()
 const selectValue = ref('')
@@ -205,9 +205,6 @@ onMounted(async () => {
   mqttConfig.username = res.data.user_name
   mqttConfig.password = res.data.password
   connectMqtt()
-  setTimeout(() => {
-    getClientStatus()
-  }, 1000)
 })
 
 onUnmounted(() => {
