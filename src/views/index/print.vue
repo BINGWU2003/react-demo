@@ -61,6 +61,7 @@ const userInfo = ref({
   phone: '',
   user_name: ''
 })
+let taskId = ''
 const statusColor = computed(() => {
   return selectValue.value ? '' : '#d9001b'
 })
@@ -110,8 +111,7 @@ const handlePrint = (htmlData) => {
         height: 80 * 1000
       }
       const printer = selectValue.value
-      const templateId = 'templateId'
-      socket.emit("news", { html: htmlData, templateId, printer, pageSize, landscape: true })
+      socket.emit("news", { html: htmlData, templateId: taskId, printer, pageSize, landscape: true })
     } else {
       errCallback('打印服务未连接')
     }
@@ -141,22 +141,12 @@ const connectMqtt = () => {
             const resData = await getPrintData({
               taskId: res.taskId
             })
-
+            taskId = res.taskId
             const [htmlData] = await generateHtml(resData.data.printTemplate.template_json, resData.data.workOrderTicketPrintVOS)
             await handlePrint(htmlData)
-            printCallback({
-              taskId: res.taskId,
-              clientId: window.localStorage.getItem('mac-address'),
-              isSuccess: true,
-            })
           } catch (error) {
             const msg = error.msg || error
             errCallback(msg)
-            printCallback({
-              taskId: res.taskId,
-              clientId: window.localStorage.getItem('mac-address'),
-              isSuccess: false,
-            })
           }
         }, 1000)
       }
@@ -199,6 +189,21 @@ onMounted(async () => {
   socket.on("printerList", (printerList) => {
     globalPrintData.printerList = printerList
     printDeviceList.value = getPrintDevice()
+  })
+  socket.on("success", (res) => {
+    printCallback({
+      taskId: res.templateId,
+      clientId: window.localStorage.getItem('mac-address'),
+      isSuccess: true,
+    })
+  })
+
+  socket.on("error", (res) => {
+    printCallback({
+      taskId: res.templateId,
+      clientId: window.localStorage.getItem('mac-address'),
+      isSuccess: false,
+    })
   })
 })
 
