@@ -2,7 +2,7 @@
  * @Author: BINGWU
  * @Date: 2024-07-23 10:28:06
  * @LastEditors: hujiacheng hujiacheng@iipcloud.com
- * @LastEditTime: 2024-08-08 14:15:30
+ * @LastEditTime: 2024-08-13 13:55:51
  * @FilePath: \print_client_service\src-electron\main.js
  * @Describe: 
  * @Mark: ૮(˶ᵔ ᵕ ᵔ˶)ა
@@ -71,6 +71,16 @@ function createTray() {
 
 app.on('ready', () => {
     createWindow()
+    // 设置开机启动
+    const autoLauncher = new AutoLaunch({
+        name: app.getName(),
+        path: app.getPath('exe')
+    })
+    autoLauncher.isEnabled().then((isEnabled) => {
+        if (!isEnabled) {
+            autoLauncher.enable()
+        }
+    })
     createTray()
 })
 
@@ -86,16 +96,7 @@ app.on('activate', () => {
     }
 })
 
-// 设置开机启动
-const autoLauncher = new AutoLaunch({
-    name: app.getName(),
-    path: app.getPath('exe')
-})
-autoLauncher.isEnabled().then((isEnabled) => {
-    if (!isEnabled) {
-        autoLauncher.enable()
-    }
-})
+
 
 ipcMain.handle('get-mac-address', async () => {
     const networkInterfaces = os.networkInterfaces()
