@@ -10,7 +10,6 @@
       </div>
       <div style="text-align: left;font-size: 18px;">{{ userInfo.cid }}</div>
       <div class="select-device">
-        <button @click="handleClick">click</button>
         <div class="tips">选择打印机</div>
         <select name="device" id="device" v-model="selectValue"
           :style="{ color: statusColor, borderColor: statusColor }" @change="handleSelectChange">
