@@ -118,8 +118,8 @@ const hideModal = () => {
 const connectMqtt = () => {
   const newMqtt = MqttPlugin()
   newMqtt.init(mqttConfig)
-  const topic1 = `/device/print/${window.localStorage.getItem('mac-address')}/${window.localStorage.getItem('cid')}`
-  newMqtt.sub(topic1, async (res) => {
+  const topic = `/device/print/${window.localStorage.getItem('mac-address')}/${window.localStorage.getItem('cid')}`
+  newMqtt.sub(topic, async (res) => {
     console.log('message', res)
     try {
       if (res?.push) {
@@ -208,6 +208,7 @@ onMounted(async () => {
   }
 
   .main-img {
+    margin-top: 30px;
     width: 50%;
   }
 

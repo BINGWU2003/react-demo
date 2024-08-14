@@ -2,7 +2,7 @@
  * @Author: BINGWU
  * @Date: 2024-07-23 10:28:06
  * @LastEditors: hujiacheng hujiacheng@iipcloud.com
- * @LastEditTime: 2024-08-14 11:59:27
+ * @LastEditTime: 2024-08-14 15:13:30
  * @FilePath: \print_client_service\src-electron\main.js
  * @Describe: 
  * @Mark: ૮(˶ᵔ ᵕ ᵔ˶)ა
@@ -20,7 +20,7 @@ function createWindow() {
     mainWindow = new BrowserWindow({
         width: 464,
         height: 557,
-        icon: join(__dirname, '../src/assets/logo.png'),
+        icon: join(__dirname, 'logo.png'),
         webPreferences: {
             preload: join(__dirname, 'preload.js'),
             contextIsolation: true,
