@@ -136,6 +136,19 @@ const connectMqtt = () => {
               taskId: res.taskId
             })
             taskId = res.taskId
+            resData.data.workOrderTicketPrintVOS = resData.data.workOrderTicketPrintVOS.map((item) => {
+              const now = new Date()
+              item.printTime = now.toLocaleDateString('zh-CN', {
+                year: 'numeric',
+                month: 'numeric',
+                day: 'numeric'
+              }) + ' ' + now.toLocaleTimeString('zh-CN', {
+                hour: '2-digit',
+                minute: '2-digit'
+              })
+              return item
+            })
+            console.log('resData', resData)
             const [htmlData] = await generateHtml(resData.data.printTemplate.template_json, resData.data.workOrderTicketPrintVOS)
             await handlePrint(htmlData)
           } catch (error) {
