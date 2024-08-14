@@ -2,7 +2,7 @@
  * @Author: BINGWU
  * @Date: 2024-07-23 10:28:06
  * @LastEditors: hujiacheng hujiacheng@iipcloud.com
- * @LastEditTime: 2024-08-14 17:15:15
+ * @LastEditTime: 2024-08-14 17:32:01
  * @FilePath: \print_client_service\src-electron\main.js
  * @Describe: 
  * @Mark: ૮(˶ᵔ ᵕ ᵔ˶)ა
@@ -84,7 +84,7 @@ if (!gotTheLock) {
         // 当运行第二个实例时，这里将会被调用，我们需要激活现有的窗口
         if (mainWindow) {
             if (mainWindow.isMinimized()) mainWindow.restore()
-            mainWindow.focus()
+            mainWindow.show()
         }
     })
     app.on('ready', () => {
