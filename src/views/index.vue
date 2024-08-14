@@ -2,7 +2,7 @@
  * @Author: BINGWU
  * @Date: 2024-07-23 10:28:06
  * @LastEditors: hujiacheng hujiacheng@iipcloud.com
- * @LastEditTime: 2024-08-06 16:09:29
+ * @LastEditTime: 2024-08-14 16:48:47
  * @FilePath: \print_client_service\src\views\index.vue
  * @Describe: 
  * @Mark: ૮(˶ᵔ ᵕ ᵔ˶)ა
@@ -31,7 +31,7 @@ import {useRouter} from 'vue-router'
 
 const router = useRouter()
 
-const version = ref('14.15.8')
+const version = ref('1.0.0')
 
 function updateVersion() {
   // router.push('/login')
@@ -71,7 +71,7 @@ function showDevUrlSwich() {
 .login-page {
   min-height: 100%;
   text-align: center;
-  padding: 50px 20px 0;
+  padding: 26px 20px 0;
   box-sizing: border-box;
   background-image: url("@/assets/background.svg");
   background-size: 100vw auto;
