@@ -2,7 +2,7 @@
  * @Author: BINGWU
  * @Date: 2024-07-23 10:28:06
  * @LastEditors: hujiacheng hujiacheng@iipcloud.com
- * @LastEditTime: 2024-08-14 10:11:28
+ * @LastEditTime: 2024-08-14 11:59:27
  * @FilePath: \print_client_service\src-electron\main.js
  * @Describe: 
  * @Mark: ૮(˶ᵔ ᵕ ᵔ˶)ა
@@ -29,12 +29,12 @@ function createWindow() {
         },
         show: false
     })
-
     if (process.env.VITE_DEV_SERVER_URL) {
         mainWindow.loadURL(process.env.VITE_DEV_SERVER_URL)
         // 开启调试台
         mainWindow.webContents.openDevTools()
     } else {
+        Menu.setApplicationMenu(null)
         mainWindow.loadFile(join(__dirname, '../dist/index.html'))
     }
     mainWindow.on('close', (event) => {

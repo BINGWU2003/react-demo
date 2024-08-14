@@ -102,7 +102,6 @@ const handlePrint = (htmlData) => {
       landscape: true, // 横向打印
       pageSize: { width: 45 * 1000, height: 60 * 1000 } // A4 纸张大小，单位为微米
     }
-    console.log('htmlData', htmlData)
     const result = await window.electron.print(htmlData, options)
     if (result.success) {
       resolve('打印成功')
@@ -148,7 +147,6 @@ const connectMqtt = () => {
               })
               return item
             })
-            console.log('resData', resData)
             const [htmlData] = await generateHtml(resData.data.printTemplate.template_json, resData.data.workOrderTicketPrintVOS)
             await handlePrint(htmlData)
           } catch (error) {
