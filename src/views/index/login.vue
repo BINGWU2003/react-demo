@@ -89,7 +89,7 @@ async function confirmLogin() {
 }
 const handleClick = () => {
   clickCount.value++
-  if (clickCount.value === 5) {
+  if (clickCount.value === 10) {
     window.sessionStorage.setItem('baseUrl', 'https://zyw.iipcloud.com')
     modalName.value = 'Modal'
     setTimeout(() => {
