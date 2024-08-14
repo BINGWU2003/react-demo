@@ -2,7 +2,7 @@
  * @Author: BINGWU
  * @Date: 2024-07-23 10:28:06
  * @LastEditors: hujiacheng hujiacheng@iipcloud.com
- * @LastEditTime: 2024-08-14 16:52:20
+ * @LastEditTime: 2024-08-14 16:57:50
  * @FilePath: \print_client_service\src-electron\main.js
  * @Describe: 
  * @Mark: ૮(˶ᵔ ᵕ ᵔ˶)ა
@@ -17,12 +17,16 @@ let mainWindow
 let tray
 
 function createWindow() {
+    if (mainWindow) {
+        mainWindow.show()
+        return
+    }
     mainWindow = new BrowserWindow({
         width: 464,
         height: 610,
         icon: join(__dirname, 'logo.png'),
-        // resizable: false,
-        // maximizable: false,
+        resizable: false,
+        maximizable: false,
         webPreferences: {
             preload: join(__dirname, 'preload.js'),
             contextIsolation: true,
@@ -95,8 +99,9 @@ app.on('window-all-closed', () => {
         app.quit()
     }
 })
-
+console.log('length', BrowserWindow.getAllWindows().length)
 app.on('activate', () => {
+    console.log('length', BrowserWindow.getAllWindows().length)
     if (BrowserWindow.getAllWindows().length === 0) {
         createWindow()
     } else if (mainWindow) {
