@@ -1,3 +1,12 @@
+<!--
+ * @Author: BINGWU
+ * @Date: 2024-07-23 10:28:06
+ * @LastEditors: hujiacheng hujiacheng@iipcloud.com
+ * @LastEditTime: 2024-08-14 16:04:01
+ * @FilePath: \print_client_service\src\App.vue
+ * @Describe: 
+ * @Mark: ૮(˶ᵔ ᵕ ᵔ˶)ა
+-->
 <script setup>
 </script>
 

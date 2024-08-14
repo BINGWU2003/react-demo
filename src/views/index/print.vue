@@ -21,7 +21,7 @@
         </select>
       </div>
     </div>
-    <img src="@/assets/logo.png" alt="" class="main-img" />
+    <img src="@/assets/qrcode.png" alt="" class="main-img" />
     <div style="font-weight: 600;color: #828282;">可以通过智衣通小程序发起打印</div>
   </div>
 
