@@ -2,7 +2,7 @@
  * @Author: BINGWU
  * @Date: 2024-07-23 10:28:06
  * @LastEditors: hujiacheng hujiacheng@iipcloud.com
- * @LastEditTime: 2024-08-14 17:32:01
+ * @LastEditTime: 2024-08-14 18:14:49
  * @FilePath: \print_client_service\src-electron\main.js
  * @Describe: 
  * @Mark: ૮(˶ᵔ ᵕ ᵔ˶)ა
@@ -24,7 +24,7 @@ function createWindow() {
     mainWindow = new BrowserWindow({
         width: 464,
         height: 610,
-        icon: join(__dirname, 'logo.png'),
+        icon: join(__dirname, 'logo.ico'),
         resizable: false,
         maximizable: false,
         webPreferences: {
@@ -53,7 +53,7 @@ function createWindow() {
 }
 
 function createTray() {
-    tray = new Tray(join(__dirname, 'logo.png')) // 替换为你的托盘图标路径
+    tray = new Tray(join(__dirname, 'logo.ico')) // 替换为你的托盘图标路径
     const contextMenu = Menu.buildFromTemplate([
         {
             label: '显示', click: () => {
