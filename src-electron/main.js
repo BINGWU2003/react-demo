@@ -2,7 +2,7 @@
  * @Author: BINGWU
  * @Date: 2024-07-23 10:28:06
  * @LastEditors: hujiacheng hujiacheng@iipcloud.com
- * @LastEditTime: 2024-08-14 16:57:50
+ * @LastEditTime: 2024-08-14 17:15:15
  * @FilePath: \print_client_service\src-electron\main.js
  * @Describe: 
  * @Mark: ૮(˶ᵔ ᵕ ᵔ˶)ა
@@ -75,39 +75,50 @@ function createTray() {
         mainWindow.show()
     })
 }
-
-app.on('ready', () => {
-    createWindow()
-    // 设置开机启动
-    const autoLauncher = new AutoLaunch({
-        name: app.getName(),
-        path: app.getPath('exe')
-    })
-    autoLauncher.isEnabled().then((isEnabled) => {
-        if (!isEnabled) {
-            // 如果未启用，则启用开机自启动
-            autoLauncher.enable()
+// 确保只启动一个应用实例
+const gotTheLock = app.requestSingleInstanceLock()
+if (!gotTheLock) {
+    app.quit()
+} else {
+    app.on('second-instance', (event, commandLine, workingDirectory) => {
+        // 当运行第二个实例时，这里将会被调用，我们需要激活现有的窗口
+        if (mainWindow) {
+            if (mainWindow.isMinimized()) mainWindow.restore()
+            mainWindow.focus()
         }
-    }).catch((err) => {
-        console.error('Error checking auto-launch status:', err)
     })
-    createTray()
-})
-
-app.on('window-all-closed', () => {
-    if (process.platform !== 'darwin') {
-        app.quit()
-    }
-})
-console.log('length', BrowserWindow.getAllWindows().length)
-app.on('activate', () => {
-    console.log('length', BrowserWindow.getAllWindows().length)
-    if (BrowserWindow.getAllWindows().length === 0) {
+    app.on('ready', () => {
         createWindow()
-    } else if (mainWindow) {
-        mainWindow.show()
-    }
-})
+        // 设置开机启动
+        const autoLauncher = new AutoLaunch({
+            name: app.getName(),
+            path: app.getPath('exe')
+        })
+        autoLauncher.isEnabled().then((isEnabled) => {
+            if (!isEnabled) {
+                // 如果未启用，则启用开机自启动
+                autoLauncher.enable()
+            }
+        }).catch((err) => {
+            console.error('Error checking auto-launch status:', err)
+        })
+        createTray()
+    })
+
+    app.on('window-all-closed', () => {
+        if (process.platform !== 'darwin') {
+            app.quit()
+        }
+    })
+    app.on('activate', () => {
+        if (BrowserWindow.getAllWindows().length === 0) {
+            createWindow()
+        } else if (mainWindow) {
+            mainWindow.show()
+        }
+    })
+}
+
 
 
 
