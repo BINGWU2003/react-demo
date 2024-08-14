@@ -42,15 +42,15 @@
 </template>
 
 <script setup>
+
 import { onMounted, ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { getUserDetail } from '@/axios/api/login'
 import MqttPlugin from '@/utils/mqttPlugin'
 import generateHtml from '@/utils/generateHtml'
 import Loading from '@/components/loading/index.vue'
-import { io } from "socket.io-client"
 import { registerPrint, getMqttConfig, pushClientStatus, getPrintData, printCallback } from '@/axios/api/print'
-let socket = null
+
 const router = useRouter()
 const selectValue = ref('')
 const printDeviceList = ref([])
@@ -72,21 +72,14 @@ const mqttConfig = {
 }
 const modalName = ref('')
 const msg = ref('')
-const globalPrintData = {
-  clientInfo: {},
-  printerList: [],
-  connectStatus: false
-}
 const errCallback = (newMag) => {
   modalName.value = 'Modal'
   msg.value = newMag
 }
 
-const handleClick = () => {
-  console.log('click')
-  console.log('globalPrintData', globalPrintData)
 
-}
+
+
 const loginOut = () => {
   window.localStorage.setItem('token', '')
   router.replace('/login')
@@ -99,20 +92,22 @@ const handleSelectChange = async (e) => {
 }
 const handlePrint = (htmlData) => {
   return new Promise(async (resolve, reject) => {
-    const printDeviceName = selectValue.value
-    if (!printDeviceName) {
+    const deviceName = selectValue.value
+    if (!deviceName) {
       reject('请选择打印机')
       return
     }
-    if (globalPrintData.connectStatus) {
-      const pageSize = {
-        width: 45 * 1000,
-        height: 80 * 1000
-      }
-      const printer = selectValue.value
-      socket.emit("news", { html: htmlData, templateId: taskId, printer, pageSize, landscape: true })
+    const options = {
+      deviceName, // 替换为你的打印机名称
+      landscape: true, // 横向打印
+      pageSize: { width: 45 * 1000, height: 60 * 1000 } // A4 纸张大小，单位为微米
+    }
+    console.log('htmlData', htmlData)
+    const result = await window.electron.print(htmlData, options)
+    if (result.success) {
+      resolve('打印成功')
     } else {
-      errCallback('打印服务未连接')
+      reject('打印失败')
     }
   })
 }
@@ -157,8 +152,9 @@ const connectMqtt = () => {
 }
 
 
-const getPrintDevice = () => {
-  return globalPrintData.printerList.map((item) => item.displayName)
+const getPrintDevice = async () => {
+  const printers = await window.electron.getPrinters()
+  return printers.map((item) => item.name)
 }
 
 onMounted(async () => {
@@ -168,42 +164,13 @@ onMounted(async () => {
   } catch (error) {
     errCallback('获取用户数据失败')
   }
-
+  printDeviceList.value = await getPrintDevice()
   const res = await getMqttConfig()
   mqttConfig.host = res.data.host
   mqttConfig.port = res.data.port
   mqttConfig.username = res.data.user_name
   mqttConfig.password = res.data.password
   connectMqtt()
-  socket = io("http://localhost:17521", {
-    transports: ["websocket"]
-  })
-  socket.on("connect", () => {
-    globalPrintData.connectStatus = true
-  })
-  socket.on("clientInfo", (clientInfo) => {
-    globalPrintData.clientInfo = clientInfo
-  })
-
-  socket.on("printerList", (printerList) => {
-    globalPrintData.printerList = printerList
-    printDeviceList.value = getPrintDevice()
-  })
-  socket.on("success", (res) => {
-    printCallback({
-      taskId: res.templateId,
-      clientId: window.localStorage.getItem('mac-address'),
-      isSuccess: true,
-    })
-  })
-
-  socket.on("error", (res) => {
-    printCallback({
-      taskId: res.templateId,
-      clientId: window.localStorage.getItem('mac-address'),
-      isSuccess: false,
-    })
-  })
 })
 
 </script>

@@ -2,7 +2,7 @@
  * @Author: BINGWU
  * @Date: 2024-07-23 17:42:37
  * @LastEditors: hujiacheng hujiacheng@iipcloud.com
- * @LastEditTime: 2024-08-06 15:44:36
+ * @LastEditTime: 2024-08-14 09:48:51
  * @FilePath: \print_client_service\src-electron\preload.js
  * @Describe: 
  * @Mark: ૮(˶ᵔ ᵕ ᵔ˶)ა
@@ -11,5 +11,7 @@ const { contextBridge, ipcRenderer } = require('electron')
 
 contextBridge.exposeInMainWorld('electron', {
   getMacAddress: () => ipcRenderer.invoke('get-mac-address'),
-  getComputerName: () => ipcRenderer.invoke('get-computer-name')
+  getComputerName: () => ipcRenderer.invoke('get-computer-name'),
+  print: (htmlContent, options) => ipcRenderer.invoke('print', htmlContent, options),
+  getPrinters: () => ipcRenderer.invoke('get-printers')
 })

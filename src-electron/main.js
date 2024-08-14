@@ -2,12 +2,13 @@
  * @Author: BINGWU
  * @Date: 2024-07-23 10:28:06
  * @LastEditors: hujiacheng hujiacheng@iipcloud.com
- * @LastEditTime: 2024-08-13 14:10:16
+ * @LastEditTime: 2024-08-14 10:11:28
  * @FilePath: \print_client_service\src-electron\main.js
  * @Describe: 
  * @Mark: ૮(˶ᵔ ᵕ ᵔ˶)ა
  */
 const { app, BrowserWindow, Tray, Menu, ipcMain } = require('electron')
+const { createPrintWindow } = require('./print')
 const { join } = require('path')
 const os = require('os')
 const AutoLaunch = require('auto-launch')
@@ -79,11 +80,11 @@ app.on('ready', () => {
     autoLauncher.isEnabled().then((isEnabled) => {
         if (!isEnabled) {
             // 如果未启用，则启用开机自启动
-            autoLauncher.enable();
+            autoLauncher.enable()
         }
     }).catch((err) => {
-        console.error('Error checking auto-launch status:', err);
-    });
+        console.error('Error checking auto-launch status:', err)
+    })
     createTray()
 })
 
@@ -117,4 +118,20 @@ ipcMain.handle('get-mac-address', async () => {
 // 处理获取电脑名称的请求
 ipcMain.handle('get-computer-name', () => {
     return os.hostname()
+})
+
+
+// 处理打印请求
+ipcMain.handle('print', async (event, htmlContent, options) => {
+    try {
+        await createPrintWindow(htmlContent, options)
+        return { success: true }
+    } catch (error) {
+        return { success: false, error }
+    }
+})
+
+// 处理获取打印机列表的请求
+ipcMain.handle('get-printers', (event) => {
+    return mainWindow.webContents.getPrintersAsync()
 })
