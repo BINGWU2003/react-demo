@@ -2,7 +2,7 @@
  * @Author: BINGWU
  * @Date: 2024-07-23 10:28:06
  * @LastEditors: hujiacheng hujiacheng@iipcloud.com
- * @LastEditTime: 2024-08-14 16:48:47
+ * @LastEditTime: 2024-08-14 17:25:38
  * @FilePath: \print_client_service\src\views\index.vue
  * @Describe: 
  * @Mark: ૮(˶ᵔ ᵕ ᵔ˶)ა
@@ -82,7 +82,7 @@ function showDevUrlSwich() {
   border-radius: 8px;
   padding: 20px;
   margin: 20px 0;
-  min-height: calc(100vh - 160px);
+  min-height: calc(100vh - 180px);
 }
 
 </style>
