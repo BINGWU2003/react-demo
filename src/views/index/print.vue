@@ -2,7 +2,6 @@
   <div class="print-page">
     <div style="width: 100%">
       <div class="header">
-        <button @click="handleClick">click</button>
         <img src="http://cdn.iipcloud.com/20191216117714588.png" alt="" />
         <div>
           <div>{{ userInfo.user_name }} <a @click="loginOut">退出登录</a></div>
@@ -72,14 +71,6 @@ const handleSelectChange = async (e) => {
     clientId: window.localStorage.getItem('mac-address')
   })
 }
-const handleClick = async () => {
-  console.log('click')
-  showToast('click')
-  try {
-  } catch (error) {
-
-  }
-}
 const handlePrint = (htmlData, width = 45, height = 60) => {
   return new Promise(async (resolve, reject) => {
     const deviceName = selectValue.value
@@ -89,8 +80,6 @@ const handlePrint = (htmlData, width = 45, height = 60) => {
     }
     const status = await window.electron.getPrinterStatus(selectValue.value)
     if (status === '空闲' || status === '打印') {
-      console.log('width', width)
-      console.log('height', height)
       const options = {
         deviceName, // 替换为你的打印机名称
         landscape: true, // 横向打印
