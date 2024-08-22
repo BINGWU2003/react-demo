@@ -26,19 +26,6 @@
     <div style="font-weight: 600;color: #828282;">可以通过智衣通小程序发起打印</div>
   </div>
 
-  <div class="cu-modal" :class="modalName == 'Modal' ? 'show' : ''">
-    <div class="cu-dialog">
-      <div class="cu-bar bg-white justify-end">
-        <div class="content">提示</div>
-        <div class="action" @click="hideModal">
-          <span class="cuIcon-close text-red"></span>
-        </div>
-      </div>
-      <div class="padding-xl" v-html="msg">
-      </div>
-    </div>
-  </div>
-
   <Loading :showLoading="showLoading"> </Loading>
 </template>
 
@@ -74,12 +61,6 @@ const mqttConfig = {
   port: '',
   username: '',
   password: '',
-}
-const modalName = ref('')
-const msg = ref('')
-const errCallback = (newMag) => {
-  modalName.value = 'Modal'
-  msg.value = newMag
 }
 const loginOut = () => {
   window.localStorage.setItem('token', '')
@@ -127,11 +108,6 @@ const handlePrint = (htmlData, width = 45, height = 60) => {
     }
   })
 }
-
-const hideModal = () => {
-  modalName.value = null
-}
-
 const connectMqtt = () => {
   const newMqtt = MqttPlugin()
   newMqtt.init(mqttConfig)
@@ -190,8 +166,6 @@ const connectMqtt = () => {
     }
   })
 }
-
-
 const getPrintDevice = async () => {
   const printers = await window.electron.getPrinters()
   return printers.map((item) => item.name)

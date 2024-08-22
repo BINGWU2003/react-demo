@@ -26,8 +26,8 @@ function createWindow() {
         width: 464,
         height: 610,
         icon: join(__dirname, 'logo.ico'),
-        // resizable: false,
-        // maximizable: false,
+        resizable: false,
+        maximizable: false,
         webPreferences: {
             preload: join(__dirname, 'preload.js'),
             contextIsolation: true,
