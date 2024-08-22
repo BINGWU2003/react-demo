@@ -96,9 +96,8 @@ const handleClick = async () => {
   console.log('click')
   showToast('click')
   try {
-    // const res = handlePrint(db)
   } catch (error) {
-    
+
   }
 }
 const handlePrint = (htmlData, width = 45, height = 60) => {
@@ -110,6 +109,8 @@ const handlePrint = (htmlData, width = 45, height = 60) => {
     }
     const status = await window.electron.getPrinterStatus(selectValue.value)
     if (status === '空闲' || status === '打印') {
+      console.log('width', width)
+      console.log('height', height)
       const options = {
         deviceName, // 替换为你的打印机名称
         landscape: true, // 横向打印
@@ -146,45 +147,38 @@ const connectMqtt = () => {
         })
       }
       if (res?.taskId) {
-        setTimeout(async () => {
-          try {
-            const resData = await getPrintData({
-              taskId: res.taskId
-            })
-            taskId = res.taskId
-            resData.data.workOrderTicketPrintVOS = resData.data.workOrderTicketPrintVOS.map((item) => {
-              const now = new Date()
-              item.printTime = now.toLocaleDateString('zh-CN', {
-                year: 'numeric',
-                month: 'numeric',
-                day: 'numeric'
-              }) + ' ' + now.toLocaleTimeString('zh-CN', {
-                hour: '2-digit',
-                minute: '2-digit'
-              })
-              return item
-            })
-            const [htmlData, width, height] = await generateHtml(resData.data.printTemplate.template_json, resData.data.workOrderTicketPrintVOS)
-            await handlePrint(htmlData, width, height)
-            await printCallback({
-              taskId,
-              isSuccess: true,
-              clientId: window.localStorage.getItem('mac-address')
-            })
-          } catch (error) {
-            const msg = error.msg || error
-            showToast(msg)
-            await printCallback({
-              taskId,
-              isSuccess: false,
-              clientId: window.localStorage.getItem('mac-address')
-            })
-          }
-        }, 1000)
+        const resData = await getPrintData({
+          taskId: res.taskId
+        })
+        taskId = res.taskId
+        resData.data.workOrderTicketPrintVOS = resData.data.workOrderTicketPrintVOS.map((item) => {
+          const now = new Date()
+          item.printTime = now.toLocaleDateString('zh-CN', {
+            year: 'numeric',
+            month: 'numeric',
+            day: 'numeric'
+          }) + ' ' + now.toLocaleTimeString('zh-CN', {
+            hour: '2-digit',
+            minute: '2-digit'
+          })
+          return item
+        })
+        const [htmlData, width, height] = await generateHtml(resData.data.printTemplate.template_json, resData.data.workOrderTicketPrintVOS)
+        await handlePrint(htmlData, width, height)
+        await printCallback({
+          taskId,
+          isSuccess: true,
+          clientId: window.localStorage.getItem('mac-address')
+        })
       }
     } catch (error) {
       const msg = error.msg || error
-      errCallback(msg)
+      showToast(msg)
+      await printCallback({
+        taskId,
+        isSuccess: false,
+        clientId: window.localStorage.getItem('mac-address')
+      })
     }
   })
 }

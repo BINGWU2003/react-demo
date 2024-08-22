@@ -2,7 +2,7 @@
  * @Author: BINGWU
  * @Date: 2024-08-02 11:16:08
  * @LastEditors: hujiacheng hujiacheng@iipcloud.com
- * @LastEditTime: 2024-08-12 17:16:46
+ * @LastEditTime: 2024-08-22 17:19:13
  * @FilePath: \print_client_service\src\utils\generateHtml.js
  * @Describe: 
  * @Mark: ૮(˶ᵔ ᵕ ᵔ˶)ა
@@ -15,18 +15,28 @@ const modifyHeightAndGetSize = (jsonString) => {
   const jsonObject = JSON.parse(jsonString)
   let width = 0
   let height = 0
+  // 修改一次
+  let isModifyHeight = false
+  // 修改一次
+  let isModifyWidth = false
   // 递归函数遍历对象并修改 height 值
   const traverseAndModify = (obj) => {
     for (const key in obj) {
       if (obj.hasOwnProperty(key)) {
         if (key === 'height' && typeof obj[key] === 'number') {
-          // 高度要加1
-          obj[key] += 1
-          height = obj[key]
+          if (!isModifyHeight) {
+            // 高度要加1
+            height = obj[key]
+            obj[key] += 1
+            isModifyHeight = true
+          }
         } else if (typeof obj[key] === 'object' && obj[key] !== null) {
           traverseAndModify(obj[key])
         } else if (key === 'width' && typeof obj[key] === 'number') {
-          width = obj[key]
+          if (!isModifyWidth) {
+            width = obj[key]
+            isModifyWidth = true
+          }
         }
       }
     }
@@ -45,20 +55,14 @@ const generateHtml = async (template_json, recordList) => {
     })
     return printTemplate.getHtml(recordList)[0].innerHTML
   }
-
-  try {
-    const [new_template_json, width, height] = modifyHeightAndGetSize(template_json)
-    console.log('template_json', height, width)
-    let templateJson = JSON.parse(new_template_json, function (k, v) {
-      if (typeof (v) == 'string') {
-        return unescape(v)
-      }
-      return v
-    })
-    return [rootHtml(buildPreviewHtml(templateJson, recordList)), width, height]
-  } catch (error) {
-    console.log('error', error)
-  }
+  const [new_template_json, width, height] = modifyHeightAndGetSize(template_json)
+  let templateJson = JSON.parse(new_template_json, function (k, v) {
+    if (typeof (v) == 'string') {
+      return unescape(v)
+    }
+    return v
+  })
+  return [rootHtml(buildPreviewHtml(templateJson, recordList)), width, height]
 }
 
 export default generateHtml
