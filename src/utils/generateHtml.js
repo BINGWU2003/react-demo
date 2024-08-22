@@ -10,10 +10,11 @@
 import rootHtml from "@/utils/rootHtml"
 import { hiprint } from "vue-plugin-hiprint"
 // hipirnt构建的html有高度误差,要重新构建加1
-const modifyHeight = (jsonString) => {
+const modifyHeightAndGetSize = (jsonString) => {
   // 解析 JSON 字符串为对象
   const jsonObject = JSON.parse(jsonString)
-
+  let width = 0
+  let height = 0
   // 递归函数遍历对象并修改 height 值
   const traverseAndModify = (obj) => {
     for (const key in obj) {
@@ -21,8 +22,11 @@ const modifyHeight = (jsonString) => {
         if (key === 'height' && typeof obj[key] === 'number') {
           // 高度要加1
           obj[key] += 1
+          height = obj[key]
         } else if (typeof obj[key] === 'object' && obj[key] !== null) {
           traverseAndModify(obj[key])
+        } else if (key === 'width' && typeof obj[key] === 'number') {
+          width = obj[key]
         }
       }
     }
@@ -32,7 +36,7 @@ const modifyHeight = (jsonString) => {
   traverseAndModify(jsonObject)
 
   // 将修改后的对象转换回 JSON 字符串
-  return JSON.stringify(jsonObject)
+  return [JSON.stringify(jsonObject), width, height]
 }
 const generateHtml = async (template_json, recordList) => {
   const buildPreviewHtml = (templateJson, recordList) => {
@@ -43,13 +47,15 @@ const generateHtml = async (template_json, recordList) => {
   }
 
   try {
-    let templateJson = JSON.parse(modifyHeight(template_json), function (k, v) {
+    const [new_template_json, width, height] = modifyHeightAndGetSize(template_json)
+    console.log('template_json', height, width)
+    let templateJson = JSON.parse(new_template_json, function (k, v) {
       if (typeof (v) == 'string') {
         return unescape(v)
       }
       return v
     })
-    return [rootHtml(buildPreviewHtml(templateJson, recordList)), recordList.length]
+    return [rootHtml(buildPreviewHtml(templateJson, recordList)), width, height]
   } catch (error) {
     console.log('error', error)
   }

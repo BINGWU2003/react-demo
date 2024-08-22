@@ -50,7 +50,7 @@ const form = ref({
 })
 
 let baseUrl = ref('')
-baseUrl.value = window.sessionStorage.getItem('baseUrl') || devConfig.baseUrl
+baseUrl.value = window.localStorage.getItem('baseUrl') || devConfig.baseUrl
 
 function setBaseUrl(baseUrlVal) {
   if (!baseUrlVal) {
@@ -66,7 +66,7 @@ function setBaseUrl(baseUrlVal) {
       baseUrl = 'https://' + baseUrl
     }
   }
-  window.sessionStorage.setItem('baseUrl', baseUrl)
+  window.localStorage.setItem('baseUrl', baseUrl)
 }
 
 async function confirmLogin() {
@@ -90,7 +90,7 @@ async function confirmLogin() {
 const handleClick = () => {
   clickCount.value++
   if (clickCount.value === 10) {
-    window.sessionStorage.setItem('baseUrl', 'https://zyw.iipcloud.com')
+    window.localStorage.setItem('baseUrl', 'https://zyw.iipcloud.com')
     modalName.value = 'Modal'
     setTimeout(() => {
       window.location.reload()

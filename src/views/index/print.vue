@@ -2,6 +2,7 @@
   <div class="print-page">
     <div style="width: 100%">
       <div class="header">
+        <button @click="handleClick">click</button>
         <img src="http://cdn.iipcloud.com/20191216117714588.png" alt="" />
         <div>
           <div>{{ userInfo.user_name }} <a @click="loginOut">退出登录</a></div>
@@ -50,7 +51,7 @@ import MqttPlugin from '@/utils/mqttPlugin'
 import generateHtml from '@/utils/generateHtml'
 import Loading from '@/components/loading/index.vue'
 import { registerPrint, getMqttConfig, pushClientStatus, getPrintData, printCallback } from '@/axios/api/print'
-
+import db from '@/utils/db'
 const router = useRouter()
 const selectValue = ref('')
 const printDeviceList = ref([])
@@ -90,23 +91,37 @@ const handleSelectChange = async (e) => {
     clientId: window.localStorage.getItem('mac-address')
   })
 }
-const handlePrint = (htmlData) => {
+const handleClick = async () => {
+  console.log('click')
+  try {
+    const res = handlePrint(db)
+  } catch (error) {
+    console.log('error', error)
+  }
+}
+const handlePrint = (htmlData, width = 45, height = 60) => {
   return new Promise(async (resolve, reject) => {
     const deviceName = selectValue.value
     if (!deviceName) {
       reject('请选择打印机')
       return
     }
-    const options = {
-      deviceName, // 替换为你的打印机名称
-      landscape: true, // 横向打印
-      pageSize: { width: 45 * 1000, height: 60 * 1000 } // A4 纸张大小，单位为微米
-    }
-    const result = await window.electron.print(htmlData, options)
-    if (result.success) {
-      resolve('打印成功')
+    const status = await window.electron.getPrinterStatus(selectValue.value)
+    if (status === '空闲' || status === '打印') {
+      const options = {
+        deviceName, // 替换为你的打印机名称
+        landscape: true, // 横向打印
+        pageSize: { width: width * 1000, height: height * 1000 } // A4 纸张大小，单位为微米
+      }
+      const result = await window.electron.print(htmlData, options)
+      if (result.success) {
+        resolve('打印成功')
+      } else {
+        reject('打印失败')
+      }
+      return
     } else {
-      reject('打印失败')
+      reject(status)
     }
   })
 }
@@ -147,8 +162,8 @@ const connectMqtt = () => {
               })
               return item
             })
-            const [htmlData] = await generateHtml(resData.data.printTemplate.template_json, resData.data.workOrderTicketPrintVOS)
-            await handlePrint(htmlData)
+            const [htmlData, width, height] = await generateHtml(resData.data.printTemplate.template_json, resData.data.workOrderTicketPrintVOS)
+            await handlePrint(htmlData, width, height)
             await printCallback({
               taskId,
               isSuccess: true,

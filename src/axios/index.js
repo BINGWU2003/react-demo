@@ -5,7 +5,7 @@ import devConfig from "@/common/devConfig";
 
 //创建axios实例
 const request = axios.create({
-    baseURL: window.sessionStorage.getItem('baseUrl') || devConfig.baseUrl,
+    baseURL: window.localStorage.getItem('baseUrl') || devConfig.baseUrl,
     timeout: 5000,
 })
 //请求拦截

@@ -13,5 +13,6 @@ contextBridge.exposeInMainWorld('electron', {
   getMacAddress: () => ipcRenderer.invoke('get-mac-address'),
   getComputerName: () => ipcRenderer.invoke('get-computer-name'),
   print: (htmlContent, options) => ipcRenderer.invoke('print', htmlContent, options),
-  getPrinters: () => ipcRenderer.invoke('get-printers')
+  getPrinters: () => ipcRenderer.invoke('get-printers'),
+  getPrinterStatus: (printerName) => ipcRenderer.invoke('get-printer-status', printerName),
 })
