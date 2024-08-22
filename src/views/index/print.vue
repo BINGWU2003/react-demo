@@ -52,6 +52,7 @@ import generateHtml from '@/utils/generateHtml'
 import Loading from '@/components/loading/index.vue'
 import { registerPrint, getMqttConfig, pushClientStatus, getPrintData, printCallback } from '@/axios/api/print'
 import db from '@/utils/db'
+import { showToast } from '@/utils/common'
 const router = useRouter()
 const selectValue = ref('')
 const printDeviceList = ref([])
@@ -93,10 +94,11 @@ const handleSelectChange = async (e) => {
 }
 const handleClick = async () => {
   console.log('click')
+  showToast('click')
   try {
-    const res = handlePrint(db)
+    // const res = handlePrint(db)
   } catch (error) {
-    console.log('error', error)
+    
   }
 }
 const handlePrint = (htmlData, width = 45, height = 60) => {
@@ -171,7 +173,7 @@ const connectMqtt = () => {
             })
           } catch (error) {
             const msg = error.msg || error
-            errCallback(msg)
+            showToast(msg)
             await printCallback({
               taskId,
               isSuccess: false,

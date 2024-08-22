@@ -2,7 +2,7 @@
  * @Author: BINGWU
  * @Date: 2024-07-23 10:28:06
  * @LastEditors: hujiacheng hujiacheng@iipcloud.com
- * @LastEditTime: 2024-08-22 10:50:31
+ * @LastEditTime: 2024-08-22 15:49:40
  * @FilePath: \print_client_service\src-electron\main.js
  * @Describe: 
  * @Mark: ૮(˶ᵔ ᵕ ᵔ˶)ა
@@ -171,7 +171,6 @@ ipcMain.handle('get-printer-status', async (event, printerName) => {
             }
             const str = stdout.replace(/\s+/g, '')
             const printerStatuses = ["其他", "未知", "空闲", "打印", "暂停", "错误", "正在初始化", "正在暖机", "正在节能"]
-            console.log('code', parseInt(str[str.length - 1]))
             const status = printerStatuses[parseInt(str[str.length - 1]) - 1]
             resolve(status)
         })
