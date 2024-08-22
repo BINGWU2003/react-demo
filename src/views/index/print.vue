@@ -44,7 +44,7 @@
 
 <script setup>
 
-import { onMounted, ref, computed } from 'vue'
+import { onMounted, ref, computed, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { getUserDetail } from '@/axios/api/login'
 import MqttPlugin from '@/utils/mqttPlugin'
@@ -66,6 +66,9 @@ let taskId = ''
 const statusColor = computed(() => {
   return selectValue.value ? '' : '#d9001b'
 })
+watch(selectValue, (printerName) => {
+  window.localStorage.setItem('printerName', printerName)
+})
 const mqttConfig = {
   host: '',
   port: '',
@@ -78,10 +81,6 @@ const errCallback = (newMag) => {
   modalName.value = 'Modal'
   msg.value = newMag
 }
-
-
-
-
 const loginOut = () => {
   window.localStorage.setItem('token', '')
   router.replace('/login')
@@ -139,18 +138,26 @@ const connectMqtt = () => {
   const topic = `/device/print/${window.localStorage.getItem('mac-address')}/${window.localStorage.getItem('cid')}`
   newMqtt.sub(topic, async (res) => {
     console.log('message', res)
-    try {
-      if (res?.push) {
+    if (res?.push) {
+      try {
         await pushClientStatus({
           clientId: window.localStorage.getItem('mac-address'),
           isPrint: res.push
         })
+      } catch (error) {
+        console.log('error', error)
       }
-      if (res?.taskId) {
+    }
+    if (res.taskId) {
+      try {
         const resData = await getPrintData({
           taskId: res.taskId
         })
         taskId = res.taskId
+        if (resData.data.msg === '找不到对应的打印模版') {
+          showToast(resData.data.msg)
+          return
+        }
         resData.data.workOrderTicketPrintVOS = resData.data.workOrderTicketPrintVOS.map((item) => {
           const now = new Date()
           item.printTime = now.toLocaleDateString('zh-CN', {
@@ -163,22 +170,24 @@ const connectMqtt = () => {
           })
           return item
         })
-        const [htmlData, width, height] = await generateHtml(resData.data.printTemplate.template_json, resData.data.workOrderTicketPrintVOS)
-        await handlePrint(htmlData, width, height)
-        await printCallback({
-          taskId,
-          isSuccess: true,
-          clientId: window.localStorage.getItem('mac-address')
-        })
+      } catch (error) {
+        showToast(error.msg)
       }
-    } catch (error) {
-      const msg = error.msg || error
-      showToast(msg)
+      const [htmlData, width, height] = await generateHtml(resData.data.printTemplate.template_json, resData.data.workOrderTicketPrintVOS)
+      let isSuccess = false
+      try {
+        await handlePrint(htmlData, width, height)
+        isSuccess = true
+      } catch (error) {
+        isSuccess = false
+        showToast(error)
+      }
       await printCallback({
         taskId,
-        isSuccess: false,
+        isSuccess,
         clientId: window.localStorage.getItem('mac-address')
       })
+
     }
   })
 }
@@ -190,19 +199,21 @@ const getPrintDevice = async () => {
 }
 
 onMounted(async () => {
+  selectValue.value = window.localStorage.getItem('printerName') || ''
   try {
     const res = await getUserDetail()
     userInfo.value = res.data
+    printDeviceList.value = await getPrintDevice()
+    const mqttConfigData = await getMqttConfig()
+    mqttConfig.host = mqttConfigData.data.host
+    mqttConfig.port = mqttConfigData.data.port
+    mqttConfig.username = mqttConfigData.data.user_name
+    mqttConfig.password = mqttConfigData.data.password
+    connectMqtt()
   } catch (error) {
     errCallback('获取用户数据失败')
   }
-  printDeviceList.value = await getPrintDevice()
-  const res = await getMqttConfig()
-  mqttConfig.host = res.data.host
-  mqttConfig.port = res.data.port
-  mqttConfig.username = res.data.user_name
-  mqttConfig.password = res.data.password
-  connectMqtt()
+
 })
 
 </script>
