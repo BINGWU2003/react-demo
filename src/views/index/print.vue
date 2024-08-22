@@ -156,38 +156,37 @@ const connectMqtt = () => {
         taskId = res.taskId
         if (resData.data.msg === '找不到对应的打印模版') {
           showToast(resData.data.msg)
-          return
-        }
-        resData.data.workOrderTicketPrintVOS = resData.data.workOrderTicketPrintVOS.map((item) => {
-          const now = new Date()
-          item.printTime = now.toLocaleDateString('zh-CN', {
-            year: 'numeric',
-            month: 'numeric',
-            day: 'numeric'
-          }) + ' ' + now.toLocaleTimeString('zh-CN', {
-            hour: '2-digit',
-            minute: '2-digit'
+        } else {
+          resData.data.workOrderTicketPrintVOS = resData.data.workOrderTicketPrintVOS.map((item) => {
+            const now = new Date()
+            item.printTime = now.toLocaleDateString('zh-CN', {
+              year: 'numeric',
+              month: 'numeric',
+              day: 'numeric'
+            }) + ' ' + now.toLocaleTimeString('zh-CN', {
+              hour: '2-digit',
+              minute: '2-digit'
+            })
+            return item
           })
-          return item
-        })
+          const [htmlData, width, height] = await generateHtml(resData.data.printTemplate.template_json, resData.data.workOrderTicketPrintVOS)
+          let isSuccess = false
+          try {
+            await handlePrint(htmlData, width, height)
+            isSuccess = true
+          } catch (error) {
+            isSuccess = false
+            showToast(error)
+          }
+          await printCallback({
+            taskId,
+            isSuccess,
+            clientId: window.localStorage.getItem('mac-address')
+          })
+        }
       } catch (error) {
         showToast(error.msg)
       }
-      const [htmlData, width, height] = await generateHtml(resData.data.printTemplate.template_json, resData.data.workOrderTicketPrintVOS)
-      let isSuccess = false
-      try {
-        await handlePrint(htmlData, width, height)
-        isSuccess = true
-      } catch (error) {
-        isSuccess = false
-        showToast(error)
-      }
-      await printCallback({
-        taskId,
-        isSuccess,
-        clientId: window.localStorage.getItem('mac-address')
-      })
-
     }
   })
 }
@@ -211,7 +210,7 @@ onMounted(async () => {
     mqttConfig.password = mqttConfigData.data.password
     connectMqtt()
   } catch (error) {
-    errCallback('获取用户数据失败')
+    showToast(error.msg || error)
   }
 
 })
