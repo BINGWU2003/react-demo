@@ -115,7 +115,7 @@ const connectMqtt = () => {
     }
 
     if (res.taskId) {
-      setTimeout(() => {
+      setTimeout(async() => {
         try {
           const resData = await getPrintData({
             taskId: res.taskId
