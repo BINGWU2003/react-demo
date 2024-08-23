@@ -27,8 +27,6 @@ function createPrintWindow(htmlContent, options = {}) {
         silent: true,
         printBackground: true,
         deviceName: options.deviceName || '', // 替换为你的打印机名称
-        landscape: options.landscape || false, // 横向打印
-        pageSize: options.pageSize || { width: 210000, height: 297000 } // A4 纸张大小，单位为微米
       }
       printWindow.webContents.print(printOptions, (success, errorType) => {
         if (!success) {
