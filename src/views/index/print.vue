@@ -137,11 +137,13 @@ const connectMqtt = () => {
             })
             const [htmlData, width, height] = await generateHtml(resData.data.printTemplate.template_json, resData.data.workOrderTicketPrintVOS)
             let isSuccess = false
+            let msg = ''
             try {
               await handlePrint(htmlData)
               isSuccess = true
             } catch (error) {
               isSuccess = false
+              msg = error
               showToast(error)
             }
             await printCallback({
@@ -149,8 +151,17 @@ const connectMqtt = () => {
               isSuccess,
               clientId: window.localStorage.getItem('mac-address')
             })
+            await pushClientStatus({
+              clientId: window.localStorage.getItem('mac-address'),
+              isPrint: isSuccess,
+              noPrintCause: msg
+            })
           }
         } catch (error) {
+          await pushClientStatus({
+            clientId: window.localStorage.getItem('mac-address'),
+            isPrint: res.push
+          })
           showToast(error.msg)
         }
       }, 1000)
