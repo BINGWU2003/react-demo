@@ -2,7 +2,7 @@
  * @Author: BINGWU
  * @Date: 2024-07-23 10:28:06
  * @LastEditors: hujiacheng hujiacheng@iipcloud.com
- * @LastEditTime: 2024-08-23 10:50:34
+ * @LastEditTime: 2024-08-23 11:43:07
  * @FilePath: \print_client_service\src-electron\main.js
  * @Describe: 
  * @Mark: ૮(˶ᵔ ᵕ ᵔ˶)ა
@@ -26,8 +26,8 @@ function createWindow() {
         width: 464,
         height: 610,
         icon: join(__dirname, 'logo.ico'),
-        // resizable: false,
-        // maximizable: false,
+        resizable: false,
+        maximizable: false,
         webPreferences: {
             preload: join(__dirname, 'preload.js'),
             contextIsolation: true,
