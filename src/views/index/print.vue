@@ -30,7 +30,7 @@
 
 <script setup>
 
-import { onMounted, ref, computed, watch, h } from 'vue'
+import { onMounted, ref, computed, watch, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { getUserDetail } from '@/axios/api/login'
 import MqttPlugin from '@/utils/mqttPlugin'
@@ -52,6 +52,7 @@ let taskId = ''
 const statusColor = computed(() => {
   return selectValue.value ? '' : '#d9001b'
 })
+let timer = null
 watch(selectValue, (printerName) => {
   window.localStorage.setItem('printerName', printerName)
 })
@@ -163,6 +164,8 @@ const getPrintDevice = async () => {
   return printers.map((item) => item.name)
 }
 
+
+
 onMounted(async () => {
   selectValue.value = window.localStorage.getItem('printerName') || ''
   try {
@@ -178,9 +181,13 @@ onMounted(async () => {
   } catch (error) {
     showToast(error.msg || error)
   }
-
+  timer = setInterval(async () => {
+    printDeviceList.value = await getPrintDevice()
+  }, 3000)
 })
-
+onUnmounted(() => {
+  clearInterval(timer)
+})
 </script>
 
 <style sass scoped>
