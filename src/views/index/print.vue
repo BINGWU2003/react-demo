@@ -72,7 +72,7 @@ const handleSelectChange = async (e) => {
     clientId: window.localStorage.getItem('mac-address')
   })
 }
-const handlePrint = (htmlData, width = 45, height = 60) => {
+const handlePrint = (htmlData) => {
   return new Promise(async (resolve, reject) => {
     const deviceName = selectValue.value
     if (!deviceName) {
@@ -138,7 +138,7 @@ const connectMqtt = () => {
             const [htmlData, width, height] = await generateHtml(resData.data.printTemplate.template_json, resData.data.workOrderTicketPrintVOS)
             let isSuccess = false
             try {
-              await handlePrint(htmlData, width + 10, height)
+              await handlePrint(htmlData)
               isSuccess = true
             } catch (error) {
               isSuccess = false
