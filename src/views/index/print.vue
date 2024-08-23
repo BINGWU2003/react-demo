@@ -181,8 +181,10 @@ onMounted(async () => {
   } catch (error) {
     showToast(error.msg || error)
   }
-  timer = setInterval(async () => {
-    printDeviceList.value = await getPrintDevice()
+  timer = setInterval(() => {
+    getPrintDevice().then((res) => {
+      printDeviceList.value = res
+    })
   }, 3000)
 })
 onUnmounted(() => {
