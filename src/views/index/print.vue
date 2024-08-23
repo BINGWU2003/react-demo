@@ -79,7 +79,7 @@ const handlePrint = (htmlData, width = 45, height = 60) => {
       return
     }
     const status = await window.electron.getPrinterStatus(selectValue.value)
-    if (status === '空闲' || status === '打印') {
+    if (status === '打印机为空闲状态' || status === '打印机为打印状态') {
       const options = {
         deviceName, // 替换为你的打印机名称
         landscape: true, // 横向打印
@@ -113,6 +113,7 @@ const connectMqtt = () => {
         console.log('error', error)
       }
     }
+    
     if (res.taskId) {
       try {
         const resData = await getPrintData({
@@ -137,7 +138,7 @@ const connectMqtt = () => {
           const [htmlData, width, height] = await generateHtml(resData.data.printTemplate.template_json, resData.data.workOrderTicketPrintVOS)
           let isSuccess = false
           try {
-            await handlePrint(htmlData, width, height)
+            await handlePrint(htmlData)
             isSuccess = true
           } catch (error) {
             isSuccess = false
