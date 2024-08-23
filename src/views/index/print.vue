@@ -113,46 +113,48 @@ const connectMqtt = () => {
         console.log('error', error)
       }
     }
-    
+
     if (res.taskId) {
-      try {
-        const resData = await getPrintData({
-          taskId: res.taskId
-        })
-        taskId = res.taskId
-        if (resData.data.msg === '找不到对应的打印模版') {
-          showToast(resData.data.msg)
-        } else {
-          resData.data.workOrderTicketPrintVOS = resData.data.workOrderTicketPrintVOS.map((item) => {
-            const now = new Date()
-            item.printTime = now.toLocaleDateString('zh-CN', {
-              year: 'numeric',
-              month: 'numeric',
-              day: 'numeric'
-            }) + ' ' + now.toLocaleTimeString('zh-CN', {
-              hour: '2-digit',
-              minute: '2-digit'
+      setTimeout(() => {
+        try {
+          const resData = await getPrintData({
+            taskId: res.taskId
+          })
+          taskId = res.taskId
+          if (resData.data.msg === '找不到对应的打印模版') {
+            showToast(resData.data.msg)
+          } else {
+            resData.data.workOrderTicketPrintVOS = resData.data.workOrderTicketPrintVOS.map((item) => {
+              const now = new Date()
+              item.printTime = now.toLocaleDateString('zh-CN', {
+                year: 'numeric',
+                month: 'numeric',
+                day: 'numeric'
+              }) + ' ' + now.toLocaleTimeString('zh-CN', {
+                hour: '2-digit',
+                minute: '2-digit'
+              })
+              return item
             })
-            return item
-          })
-          const [htmlData, width, height] = await generateHtml(resData.data.printTemplate.template_json, resData.data.workOrderTicketPrintVOS)
-          let isSuccess = false
-          try {
-            await handlePrint(htmlData)
-            isSuccess = true
-          } catch (error) {
-            isSuccess = false
-            showToast(error)
+            const [htmlData, width, height] = await generateHtml(resData.data.printTemplate.template_json, resData.data.workOrderTicketPrintVOS)
+            let isSuccess = false
+            try {
+              await handlePrint(htmlData)
+              isSuccess = true
+            } catch (error) {
+              isSuccess = false
+              showToast(error)
+            }
+            await printCallback({
+              taskId,
+              isSuccess,
+              clientId: window.localStorage.getItem('mac-address')
+            })
           }
-          await printCallback({
-            taskId,
-            isSuccess,
-            clientId: window.localStorage.getItem('mac-address')
-          })
+        } catch (error) {
+          showToast(error.msg)
         }
-      } catch (error) {
-        showToast(error.msg)
-      }
+      }, 1000)
     }
   })
 }
