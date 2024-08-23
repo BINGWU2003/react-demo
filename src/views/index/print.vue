@@ -83,7 +83,6 @@ const handlePrint = (htmlData, width = 45, height = 60) => {
     if (status === '打印机为空闲状态' || status === '打印机为打印状态') {
       const options = {
         deviceName, // 替换为你的打印机名称
-        landscape: true, // 横向打印
         pageSize: { width: width * 1000, height: height * 1000 } // A4 纸张大小，单位为微米
       }
       const result = await window.electron.print(htmlData, options)
