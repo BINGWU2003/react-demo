@@ -30,7 +30,7 @@
 
 <script setup>
 
-import { onMounted, ref, computed, watch } from 'vue'
+import { onMounted, ref, computed, watch, h } from 'vue'
 import { useRouter } from 'vue-router'
 import { getUserDetail } from '@/axios/api/login'
 import MqttPlugin from '@/utils/mqttPlugin'
@@ -115,7 +115,7 @@ const connectMqtt = () => {
     }
 
     if (res.taskId) {
-      setTimeout(async() => {
+      setTimeout(async () => {
         try {
           const resData = await getPrintData({
             taskId: res.taskId
@@ -139,7 +139,7 @@ const connectMqtt = () => {
             const [htmlData, width, height] = await generateHtml(resData.data.printTemplate.template_json, resData.data.workOrderTicketPrintVOS)
             let isSuccess = false
             try {
-              await handlePrint(htmlData)
+              await handlePrint(htmlData, width + 10, height)
               isSuccess = true
             } catch (error) {
               isSuccess = false
