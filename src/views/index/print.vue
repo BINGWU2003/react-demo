@@ -158,7 +158,9 @@ const connectMqtt = () => {
             await pushClientStatus({
               clientId: window.localStorage.getItem('mac-address'),
               isPrint: isSuccess,
-              noPrintCause: msg
+              ...(isSuccess ? {} : {
+                noPrintCause: msg
+              })
             })
           }
         } catch (error) {
