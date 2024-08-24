@@ -27,6 +27,7 @@ function createPrintWindow(htmlContent, options = {}) {
         silent: true,
         printBackground: true,
         deviceName: options.deviceName || '', // 替换为你的打印机名称
+        pageSize: options.pageSize || 'A4',
       }
       printWindow.webContents.print(printOptions, (success, errorType) => {
         if (!success) {

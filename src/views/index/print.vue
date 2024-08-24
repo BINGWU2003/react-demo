@@ -72,7 +72,7 @@ const handleSelectChange = async (e) => {
     clientId: window.localStorage.getItem('mac-address')
   })
 }
-const handlePrint = (htmlData) => {
+const handlePrint = (htmlData, width = 40, height = 60) => {
   return new Promise(async (resolve, reject) => {
     const deviceName = selectValue.value
     if (!deviceName) {
@@ -80,9 +80,13 @@ const handlePrint = (htmlData) => {
       return
     }
     const status = await window.electron.getPrinterStatus(selectValue.value)
-    if (status === '打印机为空闲状态' || status === '打印机为打印状态') {
+    if (status === '打印机为空闲状态' || status === '打印机为打印状态' || status === '其他') {
       const options = {
         deviceName, // 替换为你的打印机名称
+        pageSize: {
+          width: (width + 10) * 10000,
+          height: height * 10000
+        }
       }
       const result = await window.electron.print(htmlData, options)
       if (result.success) {
@@ -139,7 +143,7 @@ const connectMqtt = () => {
             let isSuccess = false
             let msg = ''
             try {
-              await handlePrint(htmlData)
+              await handlePrint(htmlData, width, height)
               isSuccess = true
             } catch (error) {
               isSuccess = false
