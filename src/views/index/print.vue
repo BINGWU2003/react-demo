@@ -84,8 +84,8 @@ const handlePrint = (htmlData, width = 40, height = 60) => {
       const options = {
         deviceName, // 替换为你的打印机名称
         pageSize: {
-          width: (width + 10) * 10000,
-          height: height * 10000
+          width: (width + 10) * 1000,
+          height: height * 1000
         }
       }
       const result = await window.electron.print(htmlData, options)
