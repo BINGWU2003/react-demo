@@ -164,10 +164,6 @@ const connectMqtt = () => {
             })
           }
         } catch (error) {
-          await pushClientStatus({
-            clientId: window.localStorage.getItem('mac-address'),
-            isPrint: res.push
-          })
           showToast(error.msg)
         }
       }, 1000)
