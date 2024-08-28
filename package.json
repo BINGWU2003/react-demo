@@ -7,12 +7,12 @@
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
-    "electron:build": "vite build && electron-builder"
+    "electron:build": "vite build && electron-builder --win --ia32"
   },
   "build": {
     "productName": "智衣通打印服务",
     "appId": "com.zhi-yi-tong",
-    "copyright": "智衣通打印服务 © 2024",
+    "copyright": "智衣科技 © 2024",
     "compression": "maximum",
     "asar": true,
     "directories": {
@@ -32,7 +32,10 @@
       "artifactName": "${productName}-v${version}-${platform}-setup.${ext}",
       "target": [
         {
-          "target": "nsis"
+          "target": "nsis",
+          "arch": [
+            "ia32"
+          ]
         }
       ]
     },
@@ -55,7 +58,7 @@
   },
   "devDependencies": {
     "@vitejs/plugin-vue": "^5.0.5",
-    "electron": "^31.2.1",
+    "electron": "^21.0.0",
     "electron-builder": "^24.13.3",
     "electron-devtools-installer": "^3.2.0",
     "sass": "^1.77.8",
