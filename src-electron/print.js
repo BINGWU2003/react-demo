@@ -8,7 +8,7 @@
  * @Mark: ૮(˶ᵔ ᵕ ᵔ˶)ა
  */
 const { BrowserWindow } = require('electron')
-
+const log = require("./log");
 
 function createPrintWindow(htmlContent, options = {}) {
   return new Promise((resolve, reject) => {
@@ -26,12 +26,17 @@ function createPrintWindow(htmlContent, options = {}) {
       const printOptions = {
         silent: true,
         printBackground: true,
+        margins:{
+          marginType: "none",
+        },
         deviceName: options.deviceName || '', // 替换为你的打印机名称
-        pageSize: options.pageSize || 'A4',
+      }
+      if(options.pageSize){
+        printOptions.pageSize =options.pageSize;
       }
       printWindow.webContents.print(printOptions, (success, errorType) => {
         if (!success) {
-          console.log('打印失败', errorType)
+          log('打印失败', errorType)
           reject(errorType)
         } else {
           resolve()

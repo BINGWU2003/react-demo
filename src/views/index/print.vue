@@ -37,8 +37,8 @@ import MqttPlugin from '@/utils/mqttPlugin'
 import generateHtml from '@/utils/generateHtml'
 import Loading from '@/components/loading/index.vue'
 import { registerPrint, getMqttConfig, pushClientStatus, getPrintData, printCallback } from '@/axios/api/print'
-import db from '@/utils/db'
 import { showToast } from '@/utils/common'
+import dayjs from 'dayjs'
 const router = useRouter()
 const selectValue = ref('')
 const printDeviceList = ref([])
@@ -84,7 +84,7 @@ const handlePrint = (htmlData, width = 40, height = 60) => {
       const options = {
         deviceName, // 替换为你的打印机名称
         pageSize: {
-          width: (width + 10) * 1000,
+          width: width * 1000,
           height: height * 1000
         }
       }
@@ -117,57 +117,50 @@ const connectMqtt = () => {
       }
     }
 
-    if (res.taskId) {
-      setTimeout(async () => {
-        try {
-          const resData = await getPrintData({
-            taskId: res.taskId
-          })
-          taskId = res.taskId
-          if (resData.data.msg === '找不到对应的打印模版') {
-            showToast(resData.data.msg)
-          } else {
-            resData.data.workOrderTicketPrintVOS = resData.data.workOrderTicketPrintVOS.map((item) => {
-              const now = new Date()
-              item.printTime = now.toLocaleDateString('zh-CN', {
-                year: 'numeric',
-                month: 'numeric',
-                day: 'numeric'
-              }) + ' ' + now.toLocaleTimeString('zh-CN', {
-                hour: '2-digit',
-                minute: '2-digit'
-              })
-              return item
-            })
-            const [htmlData, width, height] = await generateHtml(resData.data.printTemplate.template_json, resData.data.workOrderTicketPrintVOS)
-            let isSuccess = false
-            let msg = ''
-            try {
-              await handlePrint(htmlData, width, height)
-              isSuccess = true
-            } catch (error) {
-              isSuccess = false
-              msg = error
-              showToast(error)
-            }
-            await printCallback({
-              taskId,
-              isSuccess,
-              clientId: window.localStorage.getItem('mac-address')
-            })
-            await pushClientStatus({
-              clientId: window.localStorage.getItem('mac-address'),
-              isPrint: isSuccess,
-              ...(isSuccess ? {} : {
-                noPrintCause: msg
-              })
-            })
-          }
-        } catch (error) {
-          showToast(error.msg)
-        }
-      }, 1000)
+    if (!res.taskId) {
+      console.log('没有taskId, 不进行打印');
     }
+    setTimeout(async () => {
+      try {
+        const resData = await getPrintData({
+          taskId: res.taskId
+        })
+        taskId = res.taskId
+        if (resData.data.msg === '找不到对应的打印模版') {
+          showToast(resData.data.msg);
+          return;
+        }
+        resData.data.workOrderTicketPrintVOS = resData.data.workOrderTicketPrintVOS.map((item) => {
+          item.printTime = dayjs().format('YYYY-MM-DD HH:mm');
+          return item;
+        });
+        const [htmlData, width, height] = await generateHtml(resData.data.printTemplate.template_json, resData.data.workOrderTicketPrintVOS)
+        let isSuccess
+        let msg = ''
+        try {
+          await handlePrint(htmlData, width, height)
+          isSuccess = true
+        } catch (error) {
+          isSuccess = false
+          msg = error
+          showToast(error)
+        }
+        await printCallback({
+          taskId,
+          isSuccess,
+          clientId: window.localStorage.getItem('mac-address')
+        })
+        await pushClientStatus({
+          clientId: window.localStorage.getItem('mac-address'),
+          isPrint: isSuccess,
+          ...(isSuccess ? {} : {
+            noPrintCause: msg
+          })
+        })
+      } catch (error) {
+        showToast(error.msg)
+      }
+    }, 1000)
   })
 }
 const getPrintDevice = async () => {

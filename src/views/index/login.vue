@@ -6,7 +6,7 @@
     </div>
     <div class="form-item">
       <input :type="showPassword ? '' : 'password'" class="form-item-input" v-model="form.userPassword"
-        placeholder="请输入密码" />
+        placeholder="请输入密码" @keyup.enter="confirmLogin"/>
       <span class="password-icon" :class="showPassword ? 'cuIcon-attention' : 'cuIcon-attentionfill'"
         @click="showPassword = !showPassword"></span>
     </div>
