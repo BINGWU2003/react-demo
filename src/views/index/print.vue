@@ -2,30 +2,31 @@
   <div class="print-page">
     <div style="width: 100%">
       <div class="header">
-        <img src="http://cdn.iipcloud.com/20191216117714588.png" alt="" class="user-img"/>
-        <div>
-          <div>{{ userInfo.user_name }} <a @click="loginOut">退出登录</a></div>
-          <div>{{ userInfo.phone }}</div>
-        </div>
+        <div style="display: flex;align-items: center;">
+			<img src="http://cdn.iipcloud.com/20191216117714588.png" alt="" class="user-img" />
+			<div style="margin-top: 3px;">
+			  <div>{{ userInfo.user_name }} <a @click="loginOut">退出登录</a></div>
+			  <div>{{ userInfo.phone }}</div>
+			</div>
+		</div>
+		<div style="width: 100px;">
+			<div class="tips">打印机状态</div>
+			<select name="deviceOnLine" id="deviceOnLine" v-model="deviceOnLineState" @change="deviceOnLineChange" style="width: 70px;font-weight: normal;">
+				<option value="在线" style="">在线</option>
+				<option value="离线">离线</option>
+			</select>
+		</div>
       </div>
       <div style="text-align: left;font-size: 18px;">{{ userInfo.cid }}</div>
       <div class="select-device" style="padding-bottom:10px">
         <div class="tips">选择打印机</div>
         <select name="device" id="device" v-model="selectValue"
-                :style="{ color: statusColor, borderColor: statusColor }" @change="handleSelectChange">
+          :style="{ color: statusColor, borderColor: statusColor }" @change="handleSelectChange">
 
-          <option v-for="(item) in printDeviceList" :value="item" :style="{ color: statusColor }">{{
-              item
+          <option class="option" v-for="(item) in printDeviceList" :value="item" :style="{ color: statusColor }">{{ item
             }}
           </option>
-          <option value="" :style="{ color: statusColor }" v-show="!selectValue">请选择打印机</option>
-        </select>
-      </div>
-      <div class="select-device">
-        <div class="tips">打印机状态</div>
-        <select name="deviceOnLine" id="deviceOnLine" v-model="deviceOnLineState">
-          <option value="在线">在线</option>
-          <option value="离线">离线</option>
+          <option value="" :style="{ color: statusColor }" v-show="!selectValue" class="option">请选择打印机</option>
         </select>
       </div>
     </div>
@@ -290,10 +291,11 @@ onUnmounted(() => {
 }
 
 .header {
-  display: flex;
-  align-items: center;
-  margin-bottom: 20px;
-  text-align: left;
+    display: flex;
+	justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    text-align: left;
 
 }
 
@@ -304,35 +306,33 @@ onUnmounted(() => {
 }
 
 .main-img {
-  margin: 10px 0;
-  width: 42%;
-}
+    margin: 10px 0;
+    width: 52%;
+  }
 
 .select-device {
-  display: flex;
-  align-items: center;
-  padding-top: 10px;
-  border-top: 1px solid #f2f2f2;
-}
-
-select {
-  background: white;
-  border-color: #d7d7d7;
-  color: black;
-  height: 30px;
-  width: calc(100% - 100px);
-  border-radius: 4px;
-  font-weight: 700;
-  padding-left: 10px;
-}
-
-.tips {
-  font-size: 13px;
-  margin-right: 4px;
-}
-
-option {
-  color: black;
-  font-weight: 700;
-}
+    display: flex;
+    align-items: center;
+    padding-top: 10px;
+    border-top: 1px solid #f2f2f2;
+  }
+  select {
+    background: white;
+    border-color: #d7d7d7;
+    color: black;
+    height: 30px;
+    width: calc(100% - 100px);
+    border-radius: 4px;
+    font-weight: 700;
+    padding-left: 10px;
+  }
+  
+  .tips {
+    font-size: 13px;
+    margin-right: 4px;
+  }
+  .option {
+    color: black;
+    font-weight: 700;
+  }
 </style>
