@@ -20,21 +20,21 @@
 
     <div style="font-size: 12px">
       <span style="color: #aaa;margin-right: 20px">v{{ version }}</span>
-      <a style="color: #fff;" @click="updateVersion">更新版本</a>
+      <a style="color: #fff;" @click="clearCache">清除缓存</a>
     </div>
   </div>
 </template>
 
 <script setup>
-import {ref} from 'vue'
+import {onMounted, ref} from 'vue'
 import {useRouter} from 'vue-router'
 
 const router = useRouter()
 
-const version = ref('1.0.0')
+const version = ref('1.0.0');
 
-function updateVersion() {
-  // router.push('/login')
+function clearCache() {
+  localStorage.clear();
 }
 
 let showSwitch = ref(0)
@@ -42,6 +42,9 @@ let showSwitch = ref(0)
 function showDevUrlSwich() {
   showSwitch.value++
 }
+onMounted(async () => {
+  version.value = await window.electron.getAppVersion();
+})
 </script>
 
 <style scoped>

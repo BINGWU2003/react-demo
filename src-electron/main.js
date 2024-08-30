@@ -168,6 +168,10 @@ ipcMain.handle('get-printers', (event) => {
     return mainWindow.webContents.getPrintersAsync()
 })
 
+ipcMain.handle('get-app-version', (event) => {
+    return app.getVersion()
+})
+
 // 处理获取打印机脱机状态的请求
 ipcMain.handle('get-printer-status', async (event, printerName) => {
     // 此状态目前只正对Xprinter打印机有效，其余打印机未验证
@@ -180,7 +184,9 @@ ipcMain.handle('get-printer-status', async (event, printerName) => {
         isBusy: false,
     }
     return new Promise((resolve, reject) => {
-        exec(`wmic printer where name="${printerName}" get Attributes,PrinterStatus,JobCountSinceLastReset, PrinterState`, (error, stdout, stderr) => {
+        let cmd = `wmic printer where name="${printerName}" get Attributes,PrinterStatus,JobCountSinceLastReset, PrinterState`;
+        // console.log(cmd);
+        exec(cmd, (error, stdout, stderr) => {
             if (error) {
                 reject(`exec error: ${error}`)
                 return

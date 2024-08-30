@@ -72,7 +72,12 @@ class Pinter {
     }
 
     get isOnline(){
-        return String(this._onlineAttribute) === String(this.currAttribute) || String(this._offlineAttribute) !== String(this.currAttribute);
+        // 离线时属性值比在线值大，_onlineAttribute和_offlineAttribute识别可能会出错
+        // 若出现当前值大于在线值和离线值，则直接设置为离线
+        if(this._onlineAttribute){
+            return String(this.currAttribute) <= Number(this._onlineAttribute);
+        }
+        return Number(this.currAttribute) <= Number(this._offlineAttribute);
     }
 
     get name() {

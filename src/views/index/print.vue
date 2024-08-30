@@ -31,6 +31,7 @@
       </div>
     </div>
     <img src="@/assets/qrcode.png" alt="" class="main-img"/>
+<!--    当前值：{{vuePrinter.currAttribute}} 在线值：{{vuePrinter._onlineAttribute}} 离线值：{{vuePrinter._offlineAttribute}}-->
     <div style="font-weight: 600;color: #828282;">可以通过智衣通小程序发起打印</div>
   </div>
 
@@ -60,14 +61,19 @@ const userInfo = ref({
   user_name: ''
 })
 var deviceOnLineState = ref('在线');
+var vuePrinter = ref(printer);
 const statusColor = computed(() => {
   return selectValue.value ? '' : '#d9001b'
 })
 let timer = null
 watch(selectValue, async (printerName, oldValue) => {
   printer.name = printerName;
-  // 首次赋值时取上次的状态
-  if (oldValue) {
+  await registerPrint({
+    printName: printerName,
+    clientId: client.id
+  })
+  // 首次赋值时取上次的状态,切换或者无默认值时才更新状态
+  if (oldValue || (!printer.onlineAttribute && !printer.offlineAttribute)) {
     await setPrinterAttribute();
   }
   await updateClientStatus();
@@ -110,10 +116,10 @@ const loginOut = () => {
 }
 const handleSelectChange = async (e) => {
   await registerPrint({
-    printerName: e.target.value,
+    printName: e.target.value,
     clientId: client.id
   })
-  client.printerName = e.target.value;
+  printer.name = e.target.value;
 }
 
 const updateClientStatus = async () => {
@@ -148,7 +154,7 @@ const handlePrint = (htmlData, width = 40, height = 60) => {
       return
     }
     const printStatus = await window.electron.getPrinterStatus(deviceName);
-    printer.onlineAttribute = printStatus.attributes
+    printer.currAttribute = printStatus.attributes
     if (!printer.isOnline) {
       reject('打印机离线，请检查');
       return;
@@ -202,7 +208,7 @@ async function doPrint(taskId) {
       printer.currAttribute = printStatus.attributes;
       if (!printer.isOnline) {
         errorInfo = '打印机离线';
-      } else if (printStatus.isPrinting) {
+      } else if (printStatus.isPrinting || printStatus.isBusy) {
         // 再次获取打印状态
         await window.electron.getPrinterStatus(printer.name);
       } else if (printStatus.isError) {
