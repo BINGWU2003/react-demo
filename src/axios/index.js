@@ -2,10 +2,11 @@ import axios from 'axios'
 import router from "@/router";
 import {showToast} from '@/utils/common';
 import devConfig from "@/common/devConfig";
+import {client} from "@/utils/store";
 
 //创建axios实例
 const request = axios.create({
-    baseURL: window.localStorage.getItem('baseUrl') || devConfig.baseUrl,
+    baseURL: client.baseUrl || devConfig.baseUrl,
     timeout: 5000,
 })
 //请求拦截

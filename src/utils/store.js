@@ -21,6 +21,7 @@ class Client {
     set baseUrl(value) {
         this._baseUrl = value;
         window.localStorage.setItem('client.baseUrl', value);
+        window.localStorage.setItem('baseUrl', value);
     }
 
     get id() {
