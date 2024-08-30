@@ -2,14 +2,14 @@
   <div class="print-page">
     <div style="width: 100%">
       <div class="header">
-        <img src="http://cdn.iipcloud.com/20191216117714588.png" alt="" />
+        <img src="http://cdn.iipcloud.com/20191216117714588.png" alt="" class="user-img" />
         <div>
           <div>{{ userInfo.user_name }} <a @click="loginOut">退出登录</a></div>
           <div>{{ userInfo.phone }}</div>
         </div>
       </div>
       <div style="text-align: left;font-size: 18px;">{{ userInfo.cid }}</div>
-      <div class="select-device">
+      <div class="select-device" style="padding-bottom:10px">
         <div class="tips">选择打印机</div>
         <select name="device" id="device" v-model="selectValue"
           :style="{ color: statusColor, borderColor: statusColor }" @change="handleSelectChange">
@@ -20,6 +20,13 @@
           <option value="" :style="{ color: statusColor }" v-show="!selectValue">请选择打印机</option>
         </select>
       </div>
+	  <div class="select-device">
+		  <div class="tips">打印机状态</div>
+		  <select name="deviceOnLine" id="deviceOnLine" v-model="deviceOnLineState" @change="deviceOnLineChange">
+		    <option value="在线">在线</option>
+			<option value="离线">离线</option>
+		  </select>
+	  </div>
     </div>
     <img src="@/assets/qrcode.png" alt="" class="main-img" />
     <div style="font-weight: 600;color: #828282;">可以通过智衣通小程序发起打印</div>
@@ -33,7 +40,7 @@
 import { onMounted, ref, computed, watch, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { getUserDetail } from '@/axios/api/login'
-import MqttPlugin from '@/utils/mqttPlugin'
+import MqttPlugin from '@/utils/mqttPlugin'                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           
 import generateHtml from '@/utils/generateHtml'
 import Loading from '@/components/loading/index.vue'
 import { registerPrint, getMqttConfig, pushClientStatus, getPrintData, printCallback } from '@/axios/api/print'
@@ -43,12 +50,14 @@ const router = useRouter()
 const selectValue = ref('')
 const printDeviceList = ref([])
 const showLoading = ref(false)
+const printState = ''
 const userInfo = ref({
   cid: '',
   phone: '',
   user_name: ''
 })
 let taskId = ''
+var deviceOnLineState = '在线'
 const statusColor = computed(() => {
   return selectValue.value ? '' : '#d9001b'
 })
@@ -72,6 +81,11 @@ const handleSelectChange = async (e) => {
     clientId: window.localStorage.getItem('mac-address')
   })
 }
+
+const deviceOnLineChange = (e) => {
+	// 上报状态 ： deviceOnLineState
+}
+
 const handlePrint = (htmlData, width = 40, height = 60) => {
   return new Promise(async (resolve, reject) => {
     const deviceName = selectValue.value
@@ -203,51 +217,50 @@ onUnmounted(() => {
   flex-direction: column;
   justify-content: space-between;
   align-items: center;
+}
 
-  .header {
+.header {
     display: flex;
     align-items: center;
     margin-bottom: 20px;
     text-align: left;
 
-    img {
+  }
+
+.user-img {
       width: 50px;
       height: 50px;
       margin-right: 10px;
     }
+
+.main-img {
+    margin: 10px 0;
+    width: 42%;
   }
 
-  .main-img {
-    margin-top: 30px;
-    width: 50%;
-  }
-
-  .select-device {
+.select-device {
     display: flex;
     align-items: center;
-    padding-top: 20px;
+    padding-top: 10px;
     border-top: 1px solid #f2f2f2;
-
-    .tips {
-      font-size: 13px;
-      margin-right: 4px;
-    }
-
-    select {
-      background: white;
-      border-color: #d7d7d7;
-      color: black;
-      height: 30px;
-      width: 200px;
-      border-radius: 4px;
-      font-weight: 700;
-      padding-left: 10px;
-
-      option {
-        color: black;
-        font-weight: 700;
-      }
-    }
   }
-}
+  select {
+    background: white;
+    border-color: #d7d7d7;
+    color: black;
+    height: 30px;
+    width: calc(100% - 100px);
+    border-radius: 4px;
+    font-weight: 700;
+    padding-left: 10px;
+  }
+  
+  .tips {
+    font-size: 13px;
+    margin-right: 4px;
+  }
+  option {
+    color: black;
+    font-weight: 700;
+  }
 </style>
