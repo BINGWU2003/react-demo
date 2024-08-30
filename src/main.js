@@ -6,7 +6,7 @@ import router from './router/index'
 
 const app = createApp(App)
 
-
+// 打印机信息
 
 //路由
 app.use(router)

@@ -34,15 +34,20 @@ function createPrintWindow(htmlContent, options = {}) {
       if(options.pageSize){
         printOptions.pageSize =options.pageSize;
       }
-      printWindow.webContents.print(printOptions, (success, errorType) => {
+      // 打印 详见 https://www.electronjs.org/zh/docs/latest/api/web-contents
+      printWindow.webContents.print(printOptions, (success, failureReason) => {
+        console.log(success, failureReason);
         if (!success) {
-          log('打印失败', errorType)
-          reject(errorType)
+          log('打印失败', failureReason)
+          reject(failureReason)
         } else {
           resolve()
         }
         printWindow.close()
       })
+      printWindow.webContents.on('did-fail-print', (event, errorCode) => {
+        console.log('打印失败，错误代码：', errorCode);
+      });
     })
   })
 }

@@ -38,6 +38,7 @@ import { onMounted, ref } from 'vue'
 import { searchCompanies, loginCompany } from '@/axios/api/login'
 import { register } from '@/axios/api/print'
 import { useRouter } from 'vue-router'
+import {user, client} from "@/utils/store";
 
 const router = useRouter()
 const companyList = ref([])
@@ -54,10 +55,10 @@ function toLogin(cid, status) {
     return
   }
   loginCompany(cid).then(async res => {
-    window.localStorage.setItem('token', res.data.token)
-    window.localStorage.setItem('cid', res.data.user.cid)
+    user.cid = res.data.user.cid;
+    user.token = res.data.token;
     await register({
-      clientId: window.localStorage.getItem('mac-address')
+      clientId: client.id
     })
     router.push('/print')
   })

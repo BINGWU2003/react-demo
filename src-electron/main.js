@@ -13,6 +13,7 @@ const { exec } = require('child_process')
 const { join } = require('path')
 const os = require('os')
 const AutoLaunch = require('auto-launch')
+const log = require("./log");
 
 let mainWindow
 let tray
@@ -22,7 +23,7 @@ function createWindow() {
         mainWindow.show()
         return
     }
-    mainWindow = new BrowserWindow({
+    const mainWidowOpt = {
         width: 464,
         height: 610,
         icon: join(__dirname, 'logo.ico'),
@@ -35,7 +36,17 @@ function createWindow() {
             nodeIntegration: false
         },
         show: false
-    })
+    }
+    if (process.env.VITE_DEV_SERVER_URL){
+        mainWidowOpt.maximizable = true;
+        mainWidowOpt.resizable = true;
+        mainWidowOpt.show = true;
+        mainWidowOpt.width = 1680;
+        mainWidowOpt.height = 800;
+
+    }
+    mainWindow = new BrowserWindow(mainWidowOpt)
+    // 未打包时打开开发者工具
     if (process.env.VITE_DEV_SERVER_URL) {
         mainWindow.loadURL(process.env.VITE_DEV_SERVER_URL)
         // 开启调试台
@@ -159,8 +170,17 @@ ipcMain.handle('get-printers', (event) => {
 
 // 处理获取打印机脱机状态的请求
 ipcMain.handle('get-printer-status', async (event, printerName) => {
+    // 此状态目前只正对Xprinter打印机有效，其余打印机未验证
+    let result = {
+        // 在线和脱机时，返回的值不一样，且在线时的值会比脱机时的值要小，在不同电脑上，这个值会不一样
+        attributes:'',
+        // 正常为3or1(HP打印机)
+        isError: false,
+        // JobCountSinceLastReset > 0未队列中还有任务，此时为在忙
+        isBusy: false,
+    }
     return new Promise((resolve, reject) => {
-        exec(`wmic printer where name="${printerName}" get name,printerstatus`, (error, stdout, stderr) => {
+        exec(`wmic printer where name="${printerName}" get Attributes,PrinterStatus,JobCountSinceLastReset, PrinterState`, (error, stdout, stderr) => {
             if (error) {
                 reject(`exec error: ${error}`)
                 return
@@ -169,10 +189,30 @@ ipcMain.handle('get-printer-status', async (event, printerName) => {
                 reject(`stderr: ${stderr}`)
                 return
             }
-            const str = stdout.replace(/\s+/g, '')
-            const printerStatuses = ["其他", "打印机为脱机状态", "打印机为空闲状态", "打印机为打印状态", "打印机为暂停状态", "打印机为错误状态", "正在初始化", "正在暖机", "正在节能"]
-            const status = printerStatuses[parseInt(str[str.length - 1]) - 1]
-            resolve(status)
+            let stdoutArr = stdout.split("\n");
+            let stdoutObj = arrayToMap(trimArray(stdoutArr[0].split(" ")),trimArray(stdoutArr[1].split(" ")));
+            log('获取打印机状态信息：' + stdoutObj);
+            console.log(stdoutObj);
+            result.attributes = stdoutObj.Attributes;
+            // 4为打印中
+            result.isError = !['1','3','4'].includes(stdoutObj.PrinterStatus);
+            result.isPrinting = stdoutObj.PrinterStatus === '4';
+            result.isBusy = stdoutObj.JobCountSinceLastReset > 0;
+            // console.log(result);
+            resolve(result)
         })
     })
+
+    function arrayToMap(arr1,arr2) {
+        let result = {};
+        arr1.forEach((key, index) => {
+            result[key] = arr2[index];
+        })
+        return result;
+    }
+
+    // 整理数组，清除空字符串和\r\n等字符
+    function trimArray(oldArr){
+        return oldArr.filter(e=>e.trim());
+    }
 })

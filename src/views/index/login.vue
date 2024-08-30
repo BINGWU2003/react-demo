@@ -37,6 +37,7 @@ import { phoneLogin } from '@/axios/api/login'
 import { useRouter } from 'vue-router'
 import { showToast } from '@/utils/common'
 import devConfig from '@/common/devConfig.js'
+import {user, client} from "@/utils/store";
 
 const router = useRouter()
 const clickCount = ref(0)
@@ -50,7 +51,7 @@ const form = ref({
 })
 
 let baseUrl = ref('')
-baseUrl.value = window.localStorage.getItem('baseUrl') || devConfig.baseUrl
+baseUrl.value = client.baseUrl || devConfig.baseUrl
 
 function setBaseUrl(baseUrlVal) {
   if (!baseUrlVal) {
@@ -66,7 +67,7 @@ function setBaseUrl(baseUrlVal) {
       baseUrl = 'https://' + baseUrl
     }
   }
-  window.localStorage.setItem('baseUrl', baseUrl)
+  client.baseUrl = baseUrl;
 }
 
 async function confirmLogin() {
@@ -81,7 +82,7 @@ async function confirmLogin() {
   setBaseUrl(baseUrl.value)
   try {
     const res = await phoneLogin(form.value)
-    window.localStorage.setItem('token', res.headerToken)
+    user.token = res.headerToken;
     router.push('/company')
   } catch (error) {
     console.log(error)
@@ -90,22 +91,21 @@ async function confirmLogin() {
 const handleClick = () => {
   clickCount.value++
   if (clickCount.value === 10) {
-    window.localStorage.setItem('baseUrl', 'https://zyw.iipcloud.com')
+    client.baseUrl = 'https://zyw.iipcloud.com';
     modalName.value = 'Modal'
     setTimeout(() => {
       window.location.reload()
     }, 1000)
   }
 }
+
 onMounted(async () => {
   //唯一标识
-  if (!window.localStorage.getItem('mac-address')) {
-    const macAddress = await window.electron.getMacAddress()
-    window.localStorage.setItem('mac-address', macAddress)
+  if (!client.id) {
+    client.id = await window.electron.getMacAddress()
   }
-  if (!window.localStorage.getItem('computer-name')) {
-    const computerName = await window.electron.getComputerName()
-    window.localStorage.setItem('computer-name', computerName)
+  if (!client.computerName) {
+    client.computerName = await window.electron.getComputerName();
   }
 })
 </script>
