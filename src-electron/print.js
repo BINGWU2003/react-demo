@@ -45,9 +45,6 @@ function createPrintWindow(htmlContent, options = {}) {
         }
         printWindow.close()
       })
-      printWindow.webContents.on('did-fail-print', (event, errorCode) => {
-        console.log('打印失败，错误代码：', errorCode);
-      });
     })
   })
 }

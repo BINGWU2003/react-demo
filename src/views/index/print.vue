@@ -11,7 +11,7 @@
 		</div>
 		<div style="width: 100px;">
 			<div class="tips">打印机状态</div>
-			<select name="deviceOnLine" id="deviceOnLine" v-model="deviceOnLineState" @change="deviceOnLineChange" style="width: 70px;font-weight: normal;">
+			<select name="deviceOnLine" id="deviceOnLine" v-model="deviceOnLineState"  style="width: 70px;font-weight: normal;">
 				<option value="在线" style="">在线</option>
 				<option value="离线">离线</option>
 			</select>
@@ -54,7 +54,6 @@ const router = useRouter()
 const selectValue = ref('')
 const printDeviceList = ref([])
 const showLoading = ref(false)
-const printState = ''
 const userInfo = ref({
   cid: '',
   phone: '',
@@ -71,9 +70,11 @@ watch(selectValue, async (printerName, oldValue) => {
   if (oldValue) {
     await setPrinterAttribute();
   }
+  await updateClientStatus();
 })
-watch(deviceOnLineState, async (state) => {
+watch(deviceOnLineState, async () => {
   await setPrinterAttribute();
+  await updateClientStatus();
 })
 
 async function setPrinterAttribute() {
@@ -115,7 +116,7 @@ const handleSelectChange = async (e) => {
   client.printerName = e.target.value;
 }
 
-const updateClientStatus = async (e) => {
+const updateClientStatus = async () => {
   let para = {
     clientId: client.id,
     isPrint: true,
