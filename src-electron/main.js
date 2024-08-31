@@ -25,7 +25,7 @@ function createWindow() {
     }
     const mainWidowOpt = {
         width: 464,
-        height: 610,
+        height: 640,
         icon: join(__dirname, 'logo.ico'),
         resizable: false,
         maximizable: false,
@@ -37,14 +37,7 @@ function createWindow() {
         },
         show: false
     }
-    if (process.env.VITE_DEV_SERVER_URL){
-        mainWidowOpt.maximizable = true;
-        mainWidowOpt.resizable = true;
-        mainWidowOpt.show = true;
-        mainWidowOpt.width = 1680;
-        mainWidowOpt.height = 800;
 
-    }
     mainWindow = new BrowserWindow(mainWidowOpt)
     // 未打包时打开开发者工具
     if (process.env.VITE_DEV_SERVER_URL) {
