@@ -1,6 +1,5 @@
 <template>
   <div class="form">
-    <div v-if="showBaseUrl">{{ baseUrl }}</div>
     <div style="margin-bottom: 20px" @click="showSwitch++">密码登录</div>
     <div class="form-item">
       <input type="text" class="form-item-input" v-model="form.userAccount" placeholder="请输入邮箱或手机号"/>
@@ -12,9 +11,9 @@
             @click="showPassword = !showPassword"></span>
     </div>
     <div class="form-item">
-      <input type="text" class="form-item-input" v-model="baseUrl" placeholder="请输入服务地址"
+      <input type="text" class="form-item-input" v-model="baseUrl" placeholder="请输入服务地址,回车生效"
              @keyup.enter="setBaseUrl"
-             v-if="showSwitch > 10"/>
+             v-if="showBaseUrl || showSwitch > 10"/>
     </div>
     <button class="login-btn" @click="confirmLogin">登录</button>
     <div class="click-area" @click="switchTestEnv">
@@ -32,7 +31,6 @@ import {user, client} from "@/utils/store";
 
 const router = useRouter()
 const clickCount = ref(0)
-const modalName = ref('')
 let showPassword = ref(false)
 
 const form = ref({
@@ -42,9 +40,9 @@ const form = ref({
 let showSwitch = ref(0);
 
 let baseUrl = ref('')
-baseUrl.value = client.baseUrl || devConfig.baseUrl
+baseUrl.value = client.baseUrl
 const showBaseUrl = computed(() => {
-  return baseUrl.value !== devConfig.baseUrl;
+  return baseUrl.value && baseUrl.value !== devConfig.baseUrl;
 });
 
 function setBaseUrl() {
@@ -88,9 +86,9 @@ async function confirmLogin() {
 const switchTestEnv = () => {
   clickCount.value++
   if (clickCount.value === 10) {
-    showToast('再点击10次切换到测试环境');
+    showToast('再点击5次切换到测试环境');
   }
-  if (clickCount.value === 20) {
+  if (clickCount.value === 15) {
     baseUrl.value = 'https://zyw.iipcloud.com';
     setBaseUrl();
   }
