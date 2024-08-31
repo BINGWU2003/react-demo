@@ -30,7 +30,8 @@
     <img src="@/assets/qrcode.png" alt="" class="main-img"/>
     <div style="font-weight: 600;color: #828282;">可以通过智衣通小程序发起打印</div>
     <div v-if="printerName"
-        style="color: red">若出现打印机状态识别错误，请确保打印机在线(可正常打印)的情况下，点击下方"清除缓存"后重新登录选择打印设备</div>
+         style="color: red">若出现打印机状态识别错误，请确保打印机在线(可正常打印)的情况下，点击下方"清除缓存"后重新登录选择打印设备
+    </div>
   </div>
 
   <Loading :showLoading="showLoading"></Loading>
@@ -107,6 +108,8 @@ async function updatePrintStatus() {
     if (Number(printer.onlineAttribute) > Number(printer.currAttribute)) {
       printer.offlineAttribute = printer.onlineAttribute;
       printer.onlineAttribute = printer.currAttribute;
+    } else if (Number(printer.onlineAttribute) < Number(printer.currAttribute)) {
+      printer.offlineAttribute = printer.currAttribute;
     }
   } else if (printer.offlineAttribute) {
     // offlineAttribute 为最大值

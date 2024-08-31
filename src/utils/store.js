@@ -94,9 +94,17 @@ class Pinter {
         window.localStorage.setItem('printer.onlineAttribute', value);
     }
 
+    get onlineAttribute() {
+        return this._onlineAttribute;
+    }
+
     set offlineAttribute(value) {
         this._offlineAttribute = value;
         window.localStorage.setItem('printer.offlineAttribute', value);
+    }
+
+    get offlineAttribute() {
+        return this._offlineAttribute;
     }
 
     clearAttributes(){
