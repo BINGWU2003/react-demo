@@ -7,8 +7,7 @@ function log() {
         console.log(...arguments);
     }
 }
-
-export default function MqttPlugin(enableLog = false) {
+function MqttPlugin(enableLog = false) {
     showLog = enableLog;
     let defaultOpt = {
         host: '',
@@ -50,7 +49,7 @@ export default function MqttPlugin(enableLog = false) {
             this.client.on('reconnect', e => {
                 log('重连中...', e);
             });
-            //mqtt消息回调   
+            //mqtt消息回调
             this.client.on('message', (topic, message) => {
                 let msg = message.toString();
                 log("收到mqtt消息:" + msg);
@@ -122,7 +121,9 @@ export default function MqttPlugin(enableLog = false) {
         },
         disconnect() {
             log('断开mqtt连接');
-            this.client.end();
+            if(this.client){
+                this.client.end();
+            }
         },
         findTopic(topic) {
             let topics = Object.keys(this.topicMap).filter(key => {
@@ -134,7 +135,7 @@ export default function MqttPlugin(enableLog = false) {
                 for (let i = 0; i < topicItems.length; i++) {
                     let t1 = topicItems[i];
                     let t2 = keys[i];
-                    // #号通配后面所有 
+                    // #号通配后面所有
                     if (t2 == '#') {
                         return true;
                     }
@@ -152,3 +153,5 @@ export default function MqttPlugin(enableLog = false) {
         }
     }
 }
+let mqttClient = new MqttPlugin();
+export default mqttClient;

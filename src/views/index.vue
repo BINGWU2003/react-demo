@@ -10,38 +10,33 @@
 <template>
   <div class="login-page">
     <div class="window-header">
-      <div class="main-title" @click="showDevUrlSwich">智衣通</div>
+      <div class="main-title">智衣通</div>
       <div class="tip-title">欢迎使用</div>
     </div>
 
     <div class="main">
-      <router-view :showSwitch="showSwitch"></router-view>
+      <router-view></router-view>
     </div>
 
     <div style="font-size: 12px">
       <span style="color: #aaa;margin-right: 20px">v{{ version }}</span>
-      <a style="color: #fff;" @click="clearCache">清除缓存</a>
+       <a style="color: #fff;" @click="clearCache">清除缓存</a>
     </div>
   </div>
 </template>
 
 <script setup>
 import {onMounted, ref} from 'vue'
-import {useRouter} from 'vue-router'
-
-const router = useRouter()
+import mqttClient from '@/utils/mqttPlugin'
 
 const version = ref('1.0.0');
 
 function clearCache() {
   localStorage.clear();
+  mqttClient.disconnect();
+  location.reload();
 }
 
-let showSwitch = ref(0)
-
-function showDevUrlSwich() {
-  showSwitch.value++
-}
 onMounted(async () => {
   version.value = await window.electron.getAppVersion();
 })

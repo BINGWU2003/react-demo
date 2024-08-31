@@ -67,7 +67,12 @@ class Pinter {
         this.currAttribute = this._onlineAttribute;
     }
     set name(value) {
+        if(this._name === value){
+            return;
+        }
         this._name = value;
+        // 打印机切换后清除之前的属性
+        this.clearAttributes();
         window.localStorage.setItem('printer.name', value);
     }
 
@@ -77,7 +82,7 @@ class Pinter {
         if(this._onlineAttribute){
             return String(this.currAttribute) <= Number(this._onlineAttribute);
         }
-        return Number(this.currAttribute) <= Number(this._offlineAttribute);
+        return Number(this.currAttribute) < Number(this._offlineAttribute);
     }
 
     get name() {
@@ -92,6 +97,12 @@ class Pinter {
     set offlineAttribute(value) {
         this._offlineAttribute = value;
         window.localStorage.setItem('printer.offlineAttribute', value);
+    }
+
+    clearAttributes(){
+        this.onlineAttribute = '';
+        this.offlineAttribute = '';
+        this.currAttribute = '';
     }
 }
 

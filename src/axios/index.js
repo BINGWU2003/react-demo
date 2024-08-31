@@ -24,6 +24,7 @@ request.interceptors.response.use((response) => {
     if (res.code == 511) {
         showToast('登录失效，请重新登录')
         router.replace('/login')
+        return Promise.reject(res);
     } else {
         if (res.state === 'ok') {
             if (response.headers.authorization) {

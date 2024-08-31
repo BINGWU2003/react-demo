@@ -1,47 +1,37 @@
 <template>
   <div class="form">
-    <div style="margin-bottom: 20px">密码登录</div>
+    <div v-if="showBaseUrl">{{ baseUrl }}</div>
+    <div style="margin-bottom: 20px" @click="showSwitch++">密码登录</div>
     <div class="form-item">
-      <input type="text" class="form-item-input" v-model="form.userAccount" placeholder="请输入邮箱或手机号" />
+      <input type="text" class="form-item-input" v-model="form.userAccount" placeholder="请输入邮箱或手机号"/>
     </div>
     <div class="form-item">
       <input :type="showPassword ? '' : 'password'" class="form-item-input" v-model="form.userPassword"
-        placeholder="请输入密码" @keyup.enter="confirmLogin"/>
+             placeholder="请输入密码" @keyup.enter="confirmLogin"/>
       <span class="password-icon" :class="showPassword ? 'cuIcon-attention' : 'cuIcon-attentionfill'"
-        @click="showPassword = !showPassword"></span>
+            @click="showPassword = !showPassword"></span>
     </div>
     <div class="form-item">
-      <input type="text" class="form-item-input" v-model="baseUrl" placeholder="请输入服务地址" v-if="props.showSwitch > 5" />
+      <input type="text" class="form-item-input" v-model="baseUrl" placeholder="请输入服务地址"
+             @keyup.enter="setBaseUrl"
+             v-if="showSwitch > 10"/>
     </div>
     <button class="login-btn" @click="confirmLogin">登录</button>
-    <div class="click-area" @click="handleClick">
-
+    <div class="click-area" @click="switchTestEnv">
     </div>
-    <div class="cu-modal" :class="modalName == 'Modal' ? 'show' : ''">
-    <div class="cu-dialog">
-      <div class="cu-bar bg-white justify-end">
-        <div class="content">提示</div>
-        <div class="action" @click="hideModal">
-        </div>
-      </div>
-      <div class="padding-xl" v-html="'切换到测试环境'">
-      </div>
-    </div>
-  </div>
   </div>
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
-import { phoneLogin } from '@/axios/api/login'
-import { useRouter } from 'vue-router'
-import { showToast } from '@/utils/common'
+import {ref, onMounted, computed} from 'vue'
+import {phoneLogin} from '@/axios/api/login'
+import {useRouter} from 'vue-router'
+import {showToast} from '@/utils/common'
 import devConfig from '@/common/devConfig.js'
 import {user, client} from "@/utils/store";
 
 const router = useRouter()
 const clickCount = ref(0)
-const props = defineProps(['showSwitch'])
 const modalName = ref('')
 let showPassword = ref(false)
 
@@ -49,25 +39,32 @@ const form = ref({
   userAccount: '',
   userPassword: '',
 })
+let showSwitch = ref(0);
 
 let baseUrl = ref('')
 baseUrl.value = client.baseUrl || devConfig.baseUrl
+const showBaseUrl = computed(() => {
+  return baseUrl.value !== devConfig.baseUrl;
+});
 
-function setBaseUrl(baseUrlVal) {
-  if (!baseUrlVal) {
+function setBaseUrl() {
+  let urlValue = baseUrl.value;
+  if (!urlValue) {
     return
   }
-  let baseUrl = baseUrlVal
-  if (!baseUrl.startsWith('http')) {
+  if (!urlValue.startsWith('http')) {
     // 前缀自动补充 ip为http://  域名为https://
     let reg = /^[0-9]+.?[0-9]*$/
-    if (reg.test(baseUrl.substring(0, 1))) {
-      baseUrl = 'http://' + baseUrl
+    if (reg.test(urlValue.substring(0, 1))) {
+      baseUrl.value = 'http://' + urlValue
     } else {
-      baseUrl = 'https://' + baseUrl
+      baseUrl.value = 'https://' + urlValue
     }
   }
-  client.baseUrl = baseUrl;
+  if (client.baseUrl !== urlValue) {
+    client.baseUrl = urlValue;
+    location.reload();
+  }
 }
 
 async function confirmLogin() {
@@ -79,7 +76,6 @@ async function confirmLogin() {
     showToast('请输入邮箱或手机号')
     return
   }
-  setBaseUrl(baseUrl.value)
   try {
     const res = await phoneLogin(form.value)
     user.token = res.headerToken;
@@ -88,14 +84,15 @@ async function confirmLogin() {
     console.log(error)
   }
 }
-const handleClick = () => {
+
+const switchTestEnv = () => {
   clickCount.value++
   if (clickCount.value === 10) {
-    client.baseUrl = 'https://zyw.iipcloud.com';
-    modalName.value = 'Modal'
-    setTimeout(() => {
-      window.location.reload()
-    }, 1000)
+    showToast('再点击10次切换到测试环境');
+  }
+  if (clickCount.value === 20) {
+    baseUrl.value = 'https://zyw.iipcloud.com';
+    setBaseUrl();
   }
 }
 
