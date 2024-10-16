@@ -7,7 +7,7 @@
  * @Describe: 
  * @Mark: ૮(˶ᵔ ᵕ ᵔ˶)ა
  */
-const { app, BrowserWindow, Tray, Menu, ipcMain } = require('electron')
+const { app, BrowserWindow, Tray, Menu, ipcMain,shell } = require('electron')
 const { createPrintWindow } = require('./print')
 const { exec } = require('child_process')
 const { join } = require('path')
@@ -60,6 +60,11 @@ function createWindow() {
 function createTray() {
     tray = new Tray(join(__dirname, 'logo.ico')) // 替换为你的托盘图标路径
     const contextMenu = Menu.buildFromTemplate([
+        {
+            label: '查看日志', click: () => {
+                shell.openPath(app.getPath("logs"));
+            }
+        },
         {
             label: '显示', click: () => {
                 mainWindow.show()
@@ -190,7 +195,7 @@ ipcMain.handle('get-printer-status', async (event, printerName) => {
             }
             let stdoutArr = stdout.split("\n");
             let stdoutObj = arrayToMap(trimArray(stdoutArr[0].split(" ")),trimArray(stdoutArr[1].split(" ")));
-            log('获取打印机状态信息：' + stdoutObj);
+            log('获取打印机状态信息:测试');
             console.log(stdoutObj);
             result.attributes = stdoutObj.Attributes;
             // 4为打印中
@@ -214,4 +219,9 @@ ipcMain.handle('get-printer-status', async (event, printerName) => {
     function trimArray(oldArr){
         return oldArr.filter(e=>e.trim());
     }
+})
+
+// 处理日志
+ipcMain.handle('generate-log', (event, message) => {
+    log(message);
 })
