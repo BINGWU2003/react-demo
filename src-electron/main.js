@@ -72,6 +72,7 @@ function createTray() {
         },
         {
             label: '退出', click: () => {
+                log('应用退出')
                 app.isQuiting = true
                 app.quit()
             }
@@ -113,6 +114,7 @@ if (!gotTheLock) {
             console.error('Error checking auto-launch status:', err)
         })
         createTray()
+        log('应用启动成功')
     })
 
     app.on('window-all-closed', () => {
