@@ -1,7 +1,8 @@
 import mqtt from 'mqtt'
 let isDev = process.env.NODE_ENV === 'development';
 let showLog = false;
-
+import { useCollectLogs } from '@/hooks/collect-logs';
+const { collectLogs } = useCollectLogs();
 function log() {
     if (isDev && showLog) {
         console.log(...arguments);
@@ -32,9 +33,11 @@ function MqttPlugin(enableLog = false) {
             this.client = mqtt.connect(url, this.opt);
             this.client.on('connect', e => {
                 log('mqtt连接成功');
+                collectLogs('mqtt连接成功');
                 // 重连
                 if (Object.keys(this.topicMap).length > 0) {
                     log('重连后重新进行订阅');
+                    collectLogs('重连后重新进行订阅');
                     for (let topic in this.topicMap) {
                         this.sub(topic, this.topicMap[topic].callback, this.topicMap[topic].qos);
                     }
@@ -45,29 +48,36 @@ function MqttPlugin(enableLog = false) {
             })
             this.client.on('error', e => {
                 log('mqtt连接失败', e);
+                collectLogs('mqtt连接失败');
             });
             this.client.on('reconnect', e => {
                 log('重连中...', e);
+                collectLogs('重连中...');
             });
             //mqtt消息回调
             this.client.on('message', (topic, message) => {
                 let msg = message.toString();
                 log("收到mqtt消息:" + msg);
                 log("topic:" + topic);
+                collectLogs("收到mqtt消息:" + msg);
+                collectLogs("topic:" + topic);
                 let callback = this.findTopic(topic);
                 if (callback) {
                     try {
                         msg = JSON.parse(msg)
                     } catch (e) {
                         log('消息格式化异常:' + e);
+                        collectLogs('消息格式化异常:' + e);
                     }
                     try {
                         callback(msg);
                     } catch (e) {
                         console.error('回调异常:' + e);
+                        collectLogs('回调异常:' + e);
                     }
                 } else {
                     log(`topic callback not found. the topic is: ${topic}`);
+                    collectLogs(`topic callback not found. the topic is: ${topic}`);
                 }
             });
         },
@@ -75,6 +85,8 @@ function MqttPlugin(enableLog = false) {
             if (err) {
                 log('连接已断开');
                 log('断开原因:' + err);
+                collectLogs('连接已断开');
+                collectLogs('断开原因:' + err);
                 if (instance.opt.autoReconnection) {
                     instance.reconnect();
                 }
@@ -88,12 +100,15 @@ function MqttPlugin(enableLog = false) {
                 onSuccess: () => {
                     log('mqtt重新连接成功');
                     log('开始重新订阅消息');
+                    collectLogs('开始重新订阅消息');
+                    collectLogs('mqtt重新连接成功');
 
                 }
             });
         },
         sub(topic, callback, qos = 2) {
             log("订阅主题:" + topic);
+            collectLogs("订阅主题:" + topic);
             this.topicMap[topic] = {
                 callback: callback,
                 qos: qos
@@ -102,10 +117,12 @@ function MqttPlugin(enableLog = false) {
                 qos: qos,
                 onFailure: function onFailure() {
                     log(`主题${topic}订阅失败`);
+                    collectLogs(`主题${topic}订阅失败`);
                 }
             }, (err, granted) => {
                 if (err) {
                     log(`主题${topic}订阅异常`);
+                    collectLogs(`主题${topic}订阅异常`);
                     console.error(err);
                 }
             });
@@ -115,12 +132,14 @@ function MqttPlugin(enableLog = false) {
         },
         pub(topic, msg, qos = 0) {
             log("发送消息:" + msg);
+            collectLogs("发送消息:" + msg);
             this.client.publish(topic, msg, {
                 qos
             });
         },
         disconnect() {
             log('断开mqtt连接');
+            collectLogs('断开mqtt连接');
             if(this.client){
                 this.client.end();
             }

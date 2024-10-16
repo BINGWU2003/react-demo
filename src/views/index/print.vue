@@ -49,8 +49,8 @@ import {registerPrint, getMqttConfig, pushClientStatus, getPrintData, printCallb
 import {showToast} from '@/utils/common'
 import dayjs from 'dayjs'
 import {user, client, printer} from "@/utils/store";
-import mqtt from "mqtt";
-
+import { useCollectLogs } from '@/hooks/collect-logs'
+const { collectLogs } = useCollectLogs()
 const router = useRouter()
 const printerName = ref(printer.name || '');
 const printDeviceList = ref([])

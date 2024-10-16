@@ -39,7 +39,8 @@ import { searchCompanies, loginCompany } from '@/axios/api/login'
 import { register } from '@/axios/api/print'
 import { useRouter } from 'vue-router'
 import {user, client} from "@/utils/store";
-
+import { useCollectLogs } from '@/hooks/collect-logs'
+const { collectLogs } = useCollectLogs()
 const router = useRouter()
 const companyList = ref([])
 
@@ -60,6 +61,7 @@ function toLogin(cid, status) {
     await register({
       clientId: client.id
     })
+    collectLogs(`设备:${client.id}成功注册到服务端`)
     router.push('/print')
   })
 }
