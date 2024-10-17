@@ -50,7 +50,7 @@ import {showToast} from '@/utils/common'
 import dayjs from 'dayjs'
 import {user, client, printer} from "@/utils/store";
 import { useCollectLogs } from '@/hooks/collect-logs'
-const { collectLogs } = useCollectLogs()
+const { collectLogs, currentTopic } = useCollectLogs()
 const router = useRouter()
 const printerName = ref(printer.name || '');
 const printDeviceList = ref([])
@@ -130,7 +130,12 @@ async function updatePrintStatus() {
 const logout = () => {
   user.token = '';
   // 断开mqtt连接
-  mqttClient.disconnect();
+  mqttClient.disconnect({
+    msg: '用户退出登录',
+    clientId: client.id,
+    topic: currentTopic.value,
+    ...user
+  });
   router.replace('/login')
 }
 const handleSelectChange = async (e) => {
@@ -161,7 +166,13 @@ const updateClientStatus = async (printStatus) => {
     para.noPrintCause = '打印机状态异常,请检查';
   }
   para.isPrint = !para.noPrintCause;
-  await pushClientStatus(para)
+  try {
+    await pushClientStatus(para)
+    collectLogs(`设备:${client.id}上报状态成功`, para)
+  } catch (error) {
+    collectLogs(`设备:${client.id}上报状态失败`,para)
+    console.log('error', error)
+  }
 }
 
 const handlePrint = (htmlData, width = 40, height = 60) => {
@@ -210,8 +221,9 @@ async function doPrint(taskId) {
   // 获取打印数据
   const resData = await getPrintData({taskId})
   if (resData.data.msg) {
-    showToast(resData.data.msg);
-    return;
+    collectLogs(`打印失败,clientId:${client.id},taskId:${taskId},printerName:${printerName.value},msg:${resData.data.msg}`)
+    showToast(resData.data.msg)
+    return
   }
   resData.data.workOrderTicketPrintVOS = resData.data.workOrderTicketPrintVOS.map((item) => {
     item.printTime = dayjs().format('YYYY-MM-DD HH:mm');
@@ -233,6 +245,7 @@ async function doPrint(taskId) {
       } else if (printStatus.isError) {
         errorInfo = '打印机状态异常,请检查';
       }
+    } else {
     }
   } catch (error) {
     errorInfo = error.message;
@@ -244,6 +257,7 @@ async function doPrint(taskId) {
     isSuccess: errorInfo === '',
     errorInfo
   });
+
 }
 
 const checkPrintStatus = async () => {
@@ -265,16 +279,22 @@ const checkPrintStatus = async () => {
 }
 
 const connectMqtt = async () => {
-  mqttClient.disconnect();
+  mqttClient.disconnect({
+    msg: '断开之前的连接',
+    clientId: client.id,
+    topic: currentTopic.value
+  });
   const res = await getMqttConfig();
+  const topic = `/device/print/${client.id}/${user.cid}`;
+  currentTopic.value = topic;
   mqttClient.init({
     host: res.data.host,
     port: res.data.port,
     username: res.data.user_name,
     password: res.data.password,
+    topic
   }, () => {
     // 订阅消息
-    const topic = `/device/print/${client.id}/${user.cid}`;
     mqttClient.sub(topic, onMessage);
   })
 
@@ -293,9 +313,11 @@ const connectMqtt = async () => {
       // 打印任务
       try {
         await doPrint(message.taskId);
+        collectLogs(`打印成功,clientId:${client.id},taskId:${message.taskId},printerName:${printerName.value}`)
       } catch (error) {
         console.error("打印失败", error);
         showToast(error.msg)
+        collectLogs(`打印失败,clientId:${client.id},taskId:${message.taskId},printerName:${printerName.value},errorInfo:${error.msg}`)
       }
     }
   }
@@ -325,7 +347,11 @@ onMounted(async () => {
 })
 onUnmounted(() => {
   clearInterval(timer)
-  mqttClient.disconnect();
+  mqttClient.disconnect({
+    msg: '页面卸载',
+    clientId: client.id,
+    topic: currentTopic.value
+  });
 })
 </script>
 

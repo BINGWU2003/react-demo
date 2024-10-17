@@ -209,7 +209,6 @@ ipcMain.handle('get-printer-status', async (event, printerName) => {
             }
             let stdoutArr = stdout.split("\n");
             let stdoutObj = arrayToMap(trimArray(stdoutArr[0].split(" ")),trimArray(stdoutArr[1].split(" ")));
-            log('获取打印机状态信息:测试');
             console.log(stdoutObj);
             result.attributes = stdoutObj.Attributes;
             // 4为打印中

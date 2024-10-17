@@ -42,7 +42,7 @@ request.interceptors.response.use((response) => {
         }
     }
 }, (error) => {
-    collectLogs(error.message)
+    collectLogs('响应失败', error)
     return Promise.reject(error)
 },)
 //对外暴露

@@ -2,7 +2,7 @@ import mqtt from 'mqtt'
 let isDev = process.env.NODE_ENV === 'development';
 let showLog = false;
 import { useCollectLogs } from '@/hooks/collect-logs';
-const { collectLogs } = useCollectLogs();
+const { collectLogs, currentTopic } = useCollectLogs()
 function log() {
     if (isDev && showLog) {
         console.log(...arguments);
@@ -32,12 +32,12 @@ function MqttPlugin(enableLog = false) {
             this.opt.port = opt.port;
             this.client = mqtt.connect(url, this.opt);
             this.client.on('connect', e => {
-                log('mqtt连接成功');
-                collectLogs('mqtt连接成功');
+                log('mqtt连接成功',e);
+                collectLogs(`mqtt连接成功,topic:${opt.topic}`);
                 // 重连
                 if (Object.keys(this.topicMap).length > 0) {
                     log('重连后重新进行订阅');
-                    collectLogs('重连后重新进行订阅');
+                    collectLogs(`重连后重新进行订阅:${opt.topic}`);
                     for (let topic in this.topicMap) {
                         this.sub(topic, this.topicMap[topic].callback, this.topicMap[topic].qos);
                     }
@@ -48,19 +48,17 @@ function MqttPlugin(enableLog = false) {
             })
             this.client.on('error', e => {
                 log('mqtt连接失败', e);
-                collectLogs('mqtt连接失败');
+                collectLogs('mqtt连接失败',e);
             });
             this.client.on('reconnect', e => {
                 log('重连中...', e);
-                collectLogs('重连中...');
+                collectLogs('重连中...', e);
             });
             //mqtt消息回调
             this.client.on('message', (topic, message) => {
                 let msg = message.toString();
-                log("收到mqtt消息:" + msg);
-                log("topic:" + topic);
-                collectLogs("收到mqtt消息:" + msg);
-                collectLogs("topic:" + topic);
+                log("收到mqtt消息,topic:" + topic);
+                collectLogs('收到mqtt消息:' + msg + ',topic:' + topic);
                 let callback = this.findTopic(topic);
                 if (callback) {
                     try {
@@ -85,8 +83,7 @@ function MqttPlugin(enableLog = false) {
             if (err) {
                 log('连接已断开');
                 log('断开原因:' + err);
-                collectLogs('连接已断开');
-                collectLogs('断开原因:' + err);
+                collectLogs('连接已断开,断开原因:' + err);
                 if (instance.opt.autoReconnection) {
                     instance.reconnect();
                 }
@@ -100,8 +97,7 @@ function MqttPlugin(enableLog = false) {
                 onSuccess: () => {
                     log('mqtt重新连接成功');
                     log('开始重新订阅消息');
-                    collectLogs('开始重新订阅消息');
-                    collectLogs('mqtt重新连接成功');
+                    collectLogs(`开始重新订阅消息,mqtt重新连接成功.topic:${currentTopic.value}`);
 
                 }
             });
@@ -132,14 +128,14 @@ function MqttPlugin(enableLog = false) {
         },
         pub(topic, msg, qos = 0) {
             log("发送消息:" + msg);
-            collectLogs("发送消息:" + msg);
+            collectLogs(`发送消息:${msg},topic:${topic}`);
             this.client.publish(topic, msg, {
                 qos
             });
         },
-        disconnect() {
-            log('断开mqtt连接');
-            collectLogs('断开mqtt连接');
+        disconnect(e) {
+            log('断开mqtt连接',e);
+            collectLogs(`断开mqtt连接`, e);
             if(this.client){
                 this.client.end();
             }

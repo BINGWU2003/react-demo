@@ -78,7 +78,7 @@ async function confirmLogin() {
   try {
     const res = await phoneLogin(form.value)
     user.token = res.headerToken;
-    collectLogs('登录成功')
+    collectLogs('登录成功', res.data.data)
     router.push('/company')
   } catch (error) {
     console.log(error)

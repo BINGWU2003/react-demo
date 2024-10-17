@@ -58,11 +58,20 @@ function toLogin(cid, status) {
   loginCompany(cid).then(async res => {
     user.cid = res.data.user.cid;
     user.token = res.data.token;
-    await register({
-      clientId: client.id
-    })
-    collectLogs(`设备:${client.id}成功注册到服务端`)
-    router.push('/print')
+    user.id = res.data.user.id;
+    user.username = res.data.authLoginUser.user_name;
+    user.loginId = res.data.authLoginUser.login_id;
+    try {
+      await register({
+        clientId: client.id
+      })
+      await collectLogs(`设备:${client.id}成功注册到服务端`)
+      console.log(`设备:${client.id}成功注册到服务端`)
+      router.push('/print')
+    } catch (error) {
+      console.log('error', error)
+      await collectLogs(`设备:${client.id}注册到服务端失败`)
+    }
   })
 }
 
