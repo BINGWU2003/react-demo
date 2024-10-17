@@ -11,6 +11,7 @@ const { app, BrowserWindow, Tray, Menu, ipcMain,shell } = require('electron')
 const { createPrintWindow } = require('./print')
 const { exec } = require('child_process')
 const { join } = require('path')
+const dayjs = require("dayjs");
 const os = require('os')
 const AutoLaunch = require('auto-launch')
 const log = require("./log");
@@ -61,9 +62,20 @@ function createTray() {
     tray = new Tray(join(__dirname, 'logo.ico')) // 替换为你的托盘图标路径
     const contextMenu = Menu.buildFromTemplate([
         {
-            label: '查看日志', click: () => {
-                shell.openPath(app.getPath("logs"));
-            }
+            label:'日志',
+            submenu:[
+                {
+                    label: '查看所有日志', click: () => {
+                        shell.openPath(app.getPath("logs"));
+                    }
+                },
+                {
+                    label: '查看当天日志', click: () => {
+                        const logFilePath = join(app.getPath("logs"), `${dayjs().format("YYYY-MM-DD")}.log`); // 替换为你的日志文件名
+                        shell.openPath(logFilePath);
+                    }
+                }
+            ]
         },
         {
             label: '显示', click: () => {
