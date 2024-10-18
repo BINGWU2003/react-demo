@@ -66,11 +66,10 @@ function toLogin(cid, status) {
         clientId: client.id
       })
       await collectLogs(`设备:${client.id}成功注册到服务端`)
-      console.log(`设备:${client.id}成功注册到服务端`)
       router.push('/print')
     } catch (error) {
       console.log('error', error)
-      await collectLogs(`设备:${client.id}注册到服务端失败`)
+      await collectLogs(`设备:${client.id}注册到服务端失败,原因:请求响应失败`)
     }
   })
 }

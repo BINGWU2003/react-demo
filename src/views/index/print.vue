@@ -170,7 +170,7 @@ const updateClientStatus = async (printStatus) => {
     await pushClientStatus(para)
     collectLogs(`设备:${client.id}上报状态成功`, para)
   } catch (error) {
-    collectLogs(`设备:${client.id}上报状态失败`,para)
+    collectLogs(`设备:${client.id}上报状态失败,原因:请求响应失败`,para)
     console.log('error', error)
   }
 }
