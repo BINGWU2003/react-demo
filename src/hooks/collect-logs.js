@@ -28,6 +28,7 @@ export const useCollectLogs = () => {
       const lastYellow = dayjs(lastCollectYellowTime.value)
       if (now.diff(lastYellow, 'minute') > 5 && netWorkStatus.value === 'yellow') {
         netWorkStatus.value = 'green'
+        lastCollectYellowTime.value = ''
       }
     }
   }
