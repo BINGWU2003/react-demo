@@ -7,10 +7,11 @@
  * @Describe: 
  * @Mark: ૮(˶ᵔ ᵕ ᵔ˶)ა
  */
-const { app, BrowserWindow, Tray, Menu, ipcMain,shell } = require('electron')
+const { app, BrowserWindow, Tray, Menu, ipcMain,shell,dialog } = require('electron')
 const { createPrintWindow } = require('./print')
 const { exec } = require('child_process')
 const { join } = require('path')
+const { existsSync } = require('fs');
 const dayjs = require("dayjs");
 const os = require('os')
 const AutoLaunch = require('auto-launch')
@@ -72,7 +73,16 @@ function createTray() {
                 {
                     label: '查看当天日志', click: () => {
                         const logFilePath = join(app.getPath("logs"), `${dayjs().format("YYYY-MM-DD")}.log`); // 替换为你的日志文件名
-                        shell.openPath(logFilePath);
+                        if (existsSync(logFilePath)) {
+                            shell.openPath(logFilePath);
+                        } else {
+                            dialog.showMessageBox({
+                                type: 'warning',
+                                title: '日志文件不存在',
+                                message: '日志文件不存在，请确认是否有日志文件生成',
+                                buttons: ['确定']
+                            });
+                        }
                     }
                 }
             ]
