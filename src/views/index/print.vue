@@ -217,7 +217,7 @@ const handlePrint = (htmlData, width = 40, height = 60) => {
       }
     } catch (error) {
       console.log('打印失败', error);
-      reject(error.message);
+      reject(error);
     }
   })
 }
@@ -254,7 +254,8 @@ async function doPrint(taskId) {
     }
   } catch (error) {
     errorInfo = error.message;
-    showToast(error.message);
+    showToast(error.message || error);
+    collectLogs(`打印失败,clientId:${client.id},taskId:${taskId},printerName:${printerName.value},`, error, 'red')
   }
   await printCallback({
     taskId,
@@ -321,7 +322,6 @@ const connectMqtt = async () => {
       } catch (error) {
         console.error("打印失败", error);
         showToast(error.msg)
-        collectLogs(`打印失败,clientId:${client.id},taskId:${message.taskId},printerName:${printerName.value},errorInfo:${error.msg}`, '', 'red')
       }
     }
   }
