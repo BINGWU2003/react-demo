@@ -3,34 +3,39 @@
     <div style="width: 100%">
       <div class="header">
         <div style="display: flex;align-items: center;">
-          <img src="http://cdn.iipcloud.com/20191216117714588.png" alt="" class="user-img"/>
+          <img src="http://cdn.iipcloud.com/20191216117714588.png" alt="" class="user-img" />
           <div style="margin-top: 3px;">
             <div>{{ userInfo.user_name }} <a @click="logout">退出登录</a></div>
             <div>{{ userInfo.phone }}</div>
           </div>
         </div>
         <div>
-          打印机状态：{{ printStatusShow }}
+          <div>
+            打印机状态：{{ printStatusShow }}
+          </div>
+          <div style="display: flex;align-items: center;">
+            网络状态：<div style="height: 16px;width: 16px;border-radius: 50%;" :style="{ backgroundColor: netWorkStatus }">
+            </div>
+          </div>
         </div>
       </div>
       <div style="text-align: left;font-size: 18px;">{{ userInfo.cid }}</div>
       <div class="select-device" style="padding-bottom:10px">
         <div class="tips">选择打印机</div>
         <select name="device" id="device" v-model="printerName"
-                :style="{ color: statusColor, borderColor: statusColor }" @change="handleSelectChange">
+          :style="{ color: statusColor, borderColor: statusColor }" @change="handleSelectChange">
 
           <option class="option" v-for="(item) in printDeviceList" :value="item" :style="{ color: statusColor }">{{
-              item
+            item
             }}
           </option>
           <option value="" :style="{ color: statusColor }" v-show="!printerName" class="option">请选择打印机</option>
         </select>
       </div>
     </div>
-    <img src="@/assets/qrcode.png" alt="" class="main-img"/>
+    <img src="@/assets/qrcode.png" alt="" class="main-img" />
     <div style="font-weight: 600;color: #828282;">可以通过智衣通小程序发起打印</div>
-    <div v-if="printerName"
-         style="color: red">若出现打印机状态识别错误，请确保打印机在线(可正常打印)的情况下，点击下方"清除缓存"后重新登录选择打印设备
+    <div v-if="printerName" style="color: red">若出现打印机状态识别错误，请确保打印机在线(可正常打印)的情况下，点击下方"清除缓存"后重新登录选择打印设备
     </div>
   </div>
 
@@ -50,7 +55,7 @@ import {showToast} from '@/utils/common'
 import dayjs from 'dayjs'
 import {user, client, printer} from "@/utils/store";
 import { useCollectLogs } from '@/hooks/collect-logs'
-const { collectLogs, currentTopic } = useCollectLogs()
+const { collectLogs, currentTopic, netWorkStatus } = useCollectLogs()
 const router = useRouter()
 const printerName = ref(printer.name || '');
 const printDeviceList = ref([])
@@ -168,9 +173,9 @@ const updateClientStatus = async (printStatus) => {
   para.isPrint = !para.noPrintCause;
   try {
     await pushClientStatus(para)
-    collectLogs(`设备:${client.id}上报状态成功`, para)
+    collectLogs(`设备:${client.id}上报状态成功,请求参数`, para)
   } catch (error) {
-    collectLogs(`设备:${client.id}上报状态失败,原因:请求响应失败`,para)
+    collectLogs(`设备:${client.id}上报状态失败,原因:请求响应失败,请求参数`,para)
     console.log('error', error)
   }
 }
@@ -292,7 +297,6 @@ const connectMqtt = async () => {
     port: res.data.port,
     username: res.data.user_name,
     password: res.data.password,
-    topic
   }, () => {
     // 订阅消息
     mqttClient.sub(topic, onMessage);
@@ -317,7 +321,7 @@ const connectMqtt = async () => {
       } catch (error) {
         console.error("打印失败", error);
         showToast(error.msg)
-        collectLogs(`打印失败,clientId:${client.id},taskId:${message.taskId},printerName:${printerName.value},errorInfo:${error.msg}`)
+        collectLogs(`打印失败,clientId:${client.id},taskId:${message.taskId},printerName:${printerName.value},errorInfo:${error.msg}`, '', 'red')
       }
     }
   }

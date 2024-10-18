@@ -35,12 +35,12 @@ function MqttPlugin(enableLog = false) {
             this.client = mqtt.connect(url, this.opt);
             this.client.on('connect', e => {
                 log('mqtt连接成功',e);
-                collectLogs(`mqtt连接成功,topic:${opt.topic}`);
+                collectLogs(`mqtt连接成功,topic:${currentTopic.value}`);
                 reconnectAttempts = 0;
                 // 重连
                 if (Object.keys(this.topicMap).length > 0) {
                     log('重连后重新进行订阅');
-                    collectLogs(`重连后重新进行订阅:${opt.topic}`);
+                    collectLogs(`重连后重新进行订阅:${currentTopic.value}`);
                     for (let topic in this.topicMap) {
                         this.sub(topic, this.topicMap[topic].callback, this.topicMap[topic].qos);
                     }
@@ -51,12 +51,12 @@ function MqttPlugin(enableLog = false) {
             })
             this.client.on('error', e => {
                 log('mqtt连接失败', e);
-                collectLogs('mqtt连接失败',e);
+                collectLogs(`mqtt连接失败,错误原因:${e}`, '', 'red')
             });
             this.client.on('reconnect', e => {
                 if (reconnectAttempts >= maxReconnectAttempts) {
                     log('重连次数超过最大重连次数，停止重连')
-                    collectLogs(`重连次数超过最大重连次数，停止重连,topic:${opt.topic}`)
+                    collectLogs(`重连次数超过最大重连次数，停止重连,topic:${currentTopic.value}`)
                     this.client.end()
                 }
                 reconnectAttempts++
@@ -88,11 +88,11 @@ function MqttPlugin(enableLog = false) {
                 }
             });
             this.client.on('close', (e) => {
-                console.log('客户端和服务端已断开连接')
+                collectLogs(`客户端和服务端断开连接,topic:${currentTopic.value},`, e, 'red');
             })
 
             this.client.on('offline', (e) => {
-                console.log('客户端已离线')
+                collectLogs(`客户端已离线,topic:${currentTopic.value},`, e, 'red');
             });
         },
         onConnectionLost(err) {
