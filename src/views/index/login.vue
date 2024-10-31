@@ -28,9 +28,10 @@ import {useRouter} from 'vue-router'
 import {showToast} from '@/utils/common'
 import devConfig from '@/common/devConfig.js'
 import {user, client} from "@/utils/store";
-
+import { useCollectLogs } from '@/hooks/collect-logs'
 const router = useRouter()
 const clickCount = ref(0)
+const {collectLogs} = useCollectLogs()
 let showPassword = ref(false)
 
 const form = ref({
@@ -77,6 +78,7 @@ async function confirmLogin() {
   try {
     const res = await phoneLogin(form.value)
     user.token = res.headerToken;
+    collectLogs('登录成功', res.data.data)
     router.push('/company')
   } catch (error) {
     console.log(error)

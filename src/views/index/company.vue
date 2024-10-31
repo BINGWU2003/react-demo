@@ -39,7 +39,8 @@ import { searchCompanies, loginCompany } from '@/axios/api/login'
 import { register } from '@/axios/api/print'
 import { useRouter } from 'vue-router'
 import {user, client} from "@/utils/store";
-
+import { useCollectLogs } from '@/hooks/collect-logs'
+const { collectLogs } = useCollectLogs()
 const router = useRouter()
 const companyList = ref([])
 
@@ -57,10 +58,19 @@ function toLogin(cid, status) {
   loginCompany(cid).then(async res => {
     user.cid = res.data.user.cid;
     user.token = res.data.token;
-    await register({
-      clientId: client.id
-    })
-    router.push('/print')
+    user.id = res.data.user.id;
+    user.username = res.data.authLoginUser.user_name;
+    user.loginId = res.data.authLoginUser.login_id;
+    try {
+      await register({
+        clientId: client.id
+      })
+      await collectLogs(`设备:${client.id}成功注册到服务端`)
+      router.push('/print')
+    } catch (error) {
+      console.log('error', error)
+      await collectLogs(`设备:${client.id}注册到服务端失败,原因:请求响应失败`)
+    }
   })
 }
 

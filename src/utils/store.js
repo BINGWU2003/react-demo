@@ -38,6 +38,9 @@ class User {
     constructor() {
         this._token = window.localStorage.getItem('user.token');
         this._cid = window.localStorage.getItem('user.cid');
+        this._id = window.localStorage.getItem('user.id');
+        this._username = window.localStorage.getItem('user.username');
+        this._loginId = window.localStorage.getItem('user.loginId');
     }
 
     get token() {
@@ -56,6 +59,33 @@ class User {
     set cid(value) {
         this._cid = value;
         window.localStorage.setItem('user.cid', value);
+    }
+
+    get id() {
+        return this._id;
+    }
+
+    set id(value) {
+        this._id = value;
+        window.localStorage.setItem('user.id', value);
+    }
+
+    get username() {
+        return this._username;
+    }
+
+    set username(value) {
+        this._username = value;
+        window.localStorage.setItem('user.username', value);
+    }
+
+    get loginId() {
+        return this._loginId;
+    }
+
+    set loginId(value) {
+        this._loginId = value;
+        window.localStorage.setItem('user.loginId', value);
     }
 }
 

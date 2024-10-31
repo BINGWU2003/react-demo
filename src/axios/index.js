@@ -3,7 +3,8 @@ import router from "@/router";
 import {showToast} from '@/utils/common';
 import devConfig from "@/common/devConfig";
 import {client} from "@/utils/store";
-
+import { useCollectLogs } from '../hooks/collect-logs'
+const { collectLogs,netWorkStatus } = useCollectLogs()
 //创建axios实例
 const request = axios.create({
     baseURL: client.baseUrl || devConfig.baseUrl,
@@ -23,6 +24,8 @@ request.interceptors.response.use((response) => {
     const res = response.data;
     if (res.code == 511) {
         showToast('登录失效，请重新登录')
+        // 响应成功 但执行了reject
+        collectLogs('响应成功,捕获到错误======>', res, 'yellow')
         router.replace('/login')
         return Promise.reject(res);
     } else {
@@ -33,12 +36,16 @@ request.interceptors.response.use((response) => {
             return res;
         } else {
             if (res.msg || res.message) {
+                collectLogs(res.msg || res.message)
                 showToast(res.msg || res.message)
             }
+            // 响应成功 但执行了reject
+            collectLogs('响应成功,捕获到错误======>', res, 'yellow')
             return Promise.reject(res);
         }
     }
 }, (error) => {
+    collectLogs('响应失败======>', error, 'red')
     return Promise.reject(error)
 },)
 //对外暴露

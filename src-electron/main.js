@@ -7,10 +7,12 @@
  * @Describe: 
  * @Mark: ૮(˶ᵔ ᵕ ᵔ˶)ა
  */
-const { app, BrowserWindow, Tray, Menu, ipcMain } = require('electron')
+const { app, BrowserWindow, Tray, Menu, ipcMain,shell,dialog } = require('electron')
 const { createPrintWindow } = require('./print')
 const { exec } = require('child_process')
 const { join } = require('path')
+const { existsSync } = require('fs');
+const dayjs = require("dayjs");
 const os = require('os')
 const AutoLaunch = require('auto-launch')
 const log = require("./log");
@@ -61,12 +63,38 @@ function createTray() {
     tray = new Tray(join(__dirname, 'logo.ico')) // 替换为你的托盘图标路径
     const contextMenu = Menu.buildFromTemplate([
         {
+            label:'日志',
+            submenu:[
+                {
+                    label: '查看所有日志', click: () => {
+                        shell.openPath(app.getPath("logs"));
+                    }
+                },
+                {
+                    label: '查看当天日志', click: () => {
+                        const logFilePath = join(app.getPath("logs"), `${dayjs().format("YYYY-MM-DD")}.log`); // 替换为你的日志文件名
+                        if (existsSync(logFilePath)) {
+                            shell.openPath(logFilePath);
+                        } else {
+                            dialog.showMessageBox({
+                                type: 'warning',
+                                title: '日志文件不存在',
+                                message: '日志文件不存在，请确认是否有日志文件生成',
+                                buttons: ['确定']
+                            });
+                        }
+                    }
+                }
+            ]
+        },
+        {
             label: '显示', click: () => {
                 mainWindow.show()
             }
         },
         {
             label: '退出', click: () => {
+                log('应用退出')
                 app.isQuiting = true
                 app.quit()
             }
@@ -108,6 +136,7 @@ if (!gotTheLock) {
             console.error('Error checking auto-launch status:', err)
         })
         createTray()
+        log('应用启动成功')
     })
 
     app.on('window-all-closed', () => {
@@ -190,7 +219,6 @@ ipcMain.handle('get-printer-status', async (event, printerName) => {
             }
             let stdoutArr = stdout.split("\n");
             let stdoutObj = arrayToMap(trimArray(stdoutArr[0].split(" ")),trimArray(stdoutArr[1].split(" ")));
-            log('获取打印机状态信息：' + stdoutObj);
             console.log(stdoutObj);
             result.attributes = stdoutObj.Attributes;
             // 4为打印中
@@ -214,4 +242,9 @@ ipcMain.handle('get-printer-status', async (event, printerName) => {
     function trimArray(oldArr){
         return oldArr.filter(e=>e.trim());
     }
+})
+
+// 处理日志
+ipcMain.handle('generate-log', (event, message) => {
+    log(message);
 })
