@@ -70,6 +70,7 @@ const printStatus = ref({
   attributes: '',
   isError: false,
   isBusy: false,
+  isOnline: false
 });
 const statusColor = computed(() => {
   return printerName.value ? '' : '#d9001b'
@@ -124,6 +125,7 @@ async function updatePrintStatus() {
     }
   }
   printStatus.value = printStatusValue;
+  printer.status = printStatusValue;
   if (statusChanged) {
     // 上报状态
     await updateClientStatus(printStatusValue);

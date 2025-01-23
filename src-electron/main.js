@@ -16,16 +16,18 @@ const dayjs = require("dayjs");
 const os = require('os')
 const AutoLaunch = require('auto-launch')
 const log = require("./log");
+const {devMainWidowOpt} = require("./config/devConfig");
 
 let mainWindow
 let tray
+let isDevMode = process.env.VITE_DEV_SERVER_URL;
 
 function createWindow() {
     if (mainWindow) {
         mainWindow.show()
         return
     }
-    const mainWidowOpt = {
+    let mainWidowOpt = {
         width: 464,
         height: 640,
         icon: join(__dirname, 'logo.ico'),
@@ -39,10 +41,13 @@ function createWindow() {
         },
         show: false
     }
-
+    if(isDevMode){
+        mainWidowOpt = Object.assign(mainWidowOpt, devMainWidowOpt);
+    }
     mainWindow = new BrowserWindow(mainWidowOpt)
     // 未打包时打开开发者工具
-    if (process.env.VITE_DEV_SERVER_URL) {
+
+    if (isDevMode) {
         mainWindow.loadURL(process.env.VITE_DEV_SERVER_URL)
         // 开启调试台
         mainWindow.webContents.openDevTools()
@@ -204,9 +209,11 @@ ipcMain.handle('get-printer-status', async (event, printerName) => {
         isError: false,
         // JobCountSinceLastReset > 0未队列中还有任务，此时为在忙
         isBusy: false,
+        isOnline: false
     }
     return new Promise((resolve, reject) => {
-        let cmd = `wmic printer where name="${printerName}" get Attributes,PrinterStatus,JobCountSinceLastReset, PrinterState`;
+        console.log(printerName);
+        let cmd = `wmic printer where name="${printerName}" get Attributes,PrinterStatus,JobCountSinceLastReset, PrinterState, WorkOffline`;
         // console.log(cmd);
         exec(cmd, (error, stdout, stderr) => {
             if (error) {
@@ -225,6 +232,7 @@ ipcMain.handle('get-printer-status', async (event, printerName) => {
             result.isError = !['1','3','4'].includes(stdoutObj.PrinterStatus);
             result.isPrinting = stdoutObj.PrinterStatus === '4';
             result.isBusy = stdoutObj.JobCountSinceLastReset > 0;
+            result.isOnline = stdoutObj.WorkOffline.toLocaleLowerCase() === 'false';
             // console.log(result);
             resolve(result)
         })

@@ -95,6 +95,11 @@ class Pinter {
         this._onlineAttribute = window.localStorage.getItem('printer.onlineAttribute');
         this._offlineAttribute = window.localStorage.getItem('printer.offlineAttribute');
         this.currAttribute = this._onlineAttribute;
+        this.status = {
+            isError: false,
+            isBusy: false,
+            isOnline: null
+        }
     }
     set name(value) {
         if(this._name === value){
@@ -107,6 +112,9 @@ class Pinter {
     }
 
     get isOnline(){
+        if (typeof (this.status.isOnline) === 'boolean') {
+            return this.status.isOnline;
+        }
         // 离线时属性值比在线值大，_onlineAttribute和_offlineAttribute识别可能会出错
         // 若出现当前值大于在线值和离线值，则直接设置为离线
         if(this._onlineAttribute){
