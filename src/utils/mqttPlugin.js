@@ -1,13 +1,19 @@
 import mqtt from 'mqtt'
+
 let isDev = process.env.NODE_ENV === 'development';
 let showLog = false;
-import { useCollectLogs } from '@/hooks/collect-logs';
-const { collectLogs, currentTopic } = useCollectLogs()
+import {useCollectLogs} from '@/hooks/collect-logs';
+
+const {collectLogs, currentTopic} = useCollectLogs()
+
 function log() {
     if (isDev && showLog) {
         console.log(...arguments);
     }
 }
+
+const MAX_RECONNECT_TIMES = 100;
+
 function MqttPlugin(enableLog = false) {
     showLog = enableLog;
     let defaultOpt = {
@@ -20,6 +26,9 @@ function MqttPlugin(enableLog = false) {
         client: null,
         opt: {},
         topicMap: {},
+        reconnecting: false,
+        reconnectTimes: 0,
+        url:'',
         init(opt, onSuccess) {
             let _this = this;
             this.opt = Object.assign(defaultOpt, opt);
@@ -29,14 +38,16 @@ function MqttPlugin(enableLog = false) {
                 this.opt.port = 80;
             }
             url = `ws://${this.opt.host}/mqtt`;
-            const maxReconnectAttempts = 10;
-            let reconnectAttempts = 0;
             this.opt.port = opt.port;
-            this.client = mqtt.connect(url, this.opt);
+            this.url = url;
+            this.client = mqtt.connect(this.url, this.opt);
+            this._configListener(onSuccess);
+        },
+        _configListener(onSuccess){
             this.client.on('connect', e => {
-                log('mqtt连接成功',e);
+                log('mqtt连接成功', e);
                 collectLogs(`mqtt连接成功,topic:${currentTopic.value}`);
-                reconnectAttempts = 0;
+                this.reconnectTimes = 0;
                 // 重连
                 if (Object.keys(this.topicMap).length > 0) {
                     log('重连后重新进行订阅');
@@ -44,24 +55,27 @@ function MqttPlugin(enableLog = false) {
                     for (let topic in this.topicMap) {
                         this.sub(topic, this.topicMap[topic].callback, this.topicMap[topic].qos);
                     }
-                } else
-                if (typeof(onSuccess) == 'function') {
+                } else if (typeof (onSuccess) == 'function') {
                     onSuccess();
-                };
+                }
             })
             this.client.on('error', e => {
                 log('mqtt连接失败', e);
                 collectLogs(`mqtt连接失败,错误原因:${e}`, '', 'red')
+                if(e.message && e.message === "client disconnecting"){
+                    // 重开连接
+                    this.client = null;
+                }
+                this.reconnect();
             });
             this.client.on('reconnect', e => {
-                if (reconnectAttempts >= maxReconnectAttempts) {
+                if (this.reconnectTimes >= MAX_RECONNECT_TIMES) {
                     log('重连次数超过最大重连次数，停止重连')
                     collectLogs(`重连次数超过最大重连次数，停止重连,topic:${currentTopic.value}`)
                     this.client.end()
                 }
-                reconnectAttempts++
                 log('重连中...', e);
-                collectLogs(`重连中...,重连次数:${reconnectAttempts}`, e);
+                collectLogs(`重连中...,重连次数:${this.reconnectTimes}`, e);
             });
             //mqtt消息回调
             this.client.on('message', (topic, message) => {
@@ -106,17 +120,34 @@ function MqttPlugin(enableLog = false) {
             }
         },
         reconnect() {
-            this.client.connect({
-                userName: this.opt.userName,
-                password: this.opt.password,
-                keepAliveInterval: this.opt.keepAliveInterval,
-                onSuccess: () => {
-                    log('mqtt重新连接成功');
-                    log('开始重新订阅消息');
-                    collectLogs(`开始重新订阅消息,mqtt重新连接成功.topic:${currentTopic.value}`);
-
+            if (this.reconnecting) {
+                log('正在重连中,请稍后...')
+                return;
+            }
+            if(this.reconnectTimes > MAX_RECONNECT_TIMES){
+                console.log('重连次数超过最大重连次数,停止重连');
+                return;
+            }
+            this.reconnectTimes++;
+            setTimeout(() => {
+                if(!this.client){
+                    console.log('开始重连，重新构建客户端')
+                    this.client = mqtt.connect(this.url, this.opt);
+                    this._configListener();
+                    return;
                 }
-            });
+                this.client.connect({
+                    userName: this.opt.userName,
+                    password: this.opt.password,
+                    keepAliveInterval: this.opt.keepAliveInterval,
+                    onSuccess: () => {
+                        this.reconnecting = false;
+                        log('mqtt重新连接成功');
+                        log('开始重新订阅消息');
+                        collectLogs(`开始重新订阅消息,mqtt重新连接成功.topic:${currentTopic.value}`);
+                    }
+                });
+            }, Math.max(this.reconnectTimes, 3)  * 1000);
         },
         sub(topic, callback, qos = 2) {
             log("订阅主题:" + topic);
@@ -133,9 +164,12 @@ function MqttPlugin(enableLog = false) {
                 }
             }, (err, granted) => {
                 if (err) {
-                    log(`主题${topic}订阅异常`);
-                    collectLogs(`主题${topic}订阅异常`, err);
-                    console.error(err);
+                    let msg = `主题${topic}订阅异常`;
+                    log(msg);
+                    collectLogs(msg, err);
+                    if (typeof (err.message) === 'string' && err.message === 'client disconnecting') {
+                        this.reconnect();
+                    }
                 }
             });
         },
@@ -143,17 +177,38 @@ function MqttPlugin(enableLog = false) {
             this.client.unsubscribe(topic);
         },
         pub(topic, msg, qos = 0) {
-            log("发送消息:" + msg);
-            collectLogs(`发送消息:${msg},topic:${topic}`);
-            this.client.publish(topic, msg, {
-                qos
-            });
+            log("发送消息:", msg);
+            if (typeof msg === 'object') {
+                msg = JSON.stringify(msg);
+            }
+            return new Promise((resolve, reject) => {
+                try {
+                    this.client.publish(topic, msg, {
+                        qos
+                    }, (e) => {
+                        if (e) {
+                            collectLogs(`消息发送失败:${msg},topic:${topic}`, e, 'warn');
+                            if (e.message === 'client disconnecting') {
+                                this.reconnect();
+                            }
+                            reject(e);
+                        } else {
+                            collectLogs(`发送消息成功:${msg},topic:${topic}`);
+                            resolve(e);
+                        }
+                    });
+                } catch (e) {
+                    reject(e);
+                }
+
+            })
         },
         disconnect(e) {
-            log('断开mqtt连接',e);
+            log('断开mqtt连接', e);
             collectLogs(`断开mqtt连接`, e);
-            if(this.client){
+            if (this.client) {
                 this.client.end();
+                this.client = null;
             }
         },
         findTopic(topic) {
@@ -184,5 +239,6 @@ function MqttPlugin(enableLog = false) {
         }
     }
 }
-let mqttClient = new MqttPlugin();
+
+let mqttClient = new MqttPlugin(false);
 export default mqttClient;

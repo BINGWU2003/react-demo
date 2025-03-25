@@ -303,7 +303,24 @@ const connectMqtt = async () => {
   }, () => {
     // 订阅消息
     mqttClient.sub(topic, onMessage);
+    // 添加心跳上报
+    pubHeartbeat();
   })
+
+  function pubHeartbeat() {
+    let hartTopic = `/zhiyi/mgy/device/print/${client.id}/${user.cid}/heartbeat`;
+    mqttClient.pub(hartTopic, {
+      printerName: printerName.value,
+      isOnline: printStatus.value.isOnline,
+      isBusy: printStatus.value.isBusy
+    }).catch(e => {
+      collectLogs(`心跳发送失败,clientId:${client.id},printerName:${printerName.value}`, e, 'red');
+    }).finally(() => {
+      setTimeout(() => {
+        pubHeartbeat();
+      }, 5000);
+    });
+  }
 
   async function onMessage(message) {
     console.log('message', message);

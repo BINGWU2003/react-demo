@@ -212,7 +212,6 @@ ipcMain.handle('get-printer-status', async (event, printerName) => {
         isOnline: false
     }
     return new Promise((resolve, reject) => {
-        console.log(printerName);
         let cmd = `wmic printer where name="${printerName}" get Attributes,PrinterStatus,JobCountSinceLastReset, PrinterState, WorkOffline`;
         // console.log(cmd);
         exec(cmd, (error, stdout, stderr) => {
@@ -256,3 +255,10 @@ ipcMain.handle('get-printer-status', async (event, printerName) => {
 ipcMain.handle('generate-log', (event, message) => {
     log(message);
 })
+
+// 监听显示主窗口的消息
+ipcMain.on('show-main-window', () => {
+    if (mainWindow) {
+        mainWindow.show();
+    }
+});

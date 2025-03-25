@@ -68,11 +68,11 @@ function setBaseUrl() {
 
 async function confirmLogin() {
   if (!form.value.userAccount) {
-    showToast('请输入密码')
+    showToast('请输入账号')
     return
   }
   if (!form.value.userPassword) {
-    showToast('请输入邮箱或手机号')
+    showToast('请输入密码')
     return
   }
   try {
@@ -82,6 +82,7 @@ async function confirmLogin() {
     router.push('/company')
   } catch (error) {
     console.log(error)
+    showToast("用户名或密码错误");
   }
 }
 
@@ -104,6 +105,7 @@ onMounted(async () => {
   if (!client.computerName) {
     client.computerName = await window.electron.getComputerName();
   }
+  window.electron.showMainWindow();
 })
 </script>
 
