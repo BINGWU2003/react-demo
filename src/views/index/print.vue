@@ -300,6 +300,7 @@ const connectMqtt = async () => {
     port: res.data.port,
     username: res.data.user_name,
     password: res.data.password,
+    clientId: "zhiyi-mes-print_" + client.id
   }, () => {
     // 订阅消息
     mqttClient.sub(topic, onMessage);
