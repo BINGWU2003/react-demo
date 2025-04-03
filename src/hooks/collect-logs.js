@@ -1,6 +1,6 @@
 import dayjs from "dayjs"
 import {ref} from "vue"
-
+let isDev = process.env.NODE_ENV === 'development';
 const currentTopic = ref('')
 // red yellow green(默认green)
 const netWorkStatus = ref('green')
@@ -14,6 +14,9 @@ export const useCollectLogs = () => {
         message += messageObj
       }
     }
+    if (isDev) {
+      console.log(message)
+    }
     if (status) {
       netWorkStatus.value = status
       if (status === 'yellow') {
@@ -22,7 +25,20 @@ export const useCollectLogs = () => {
     }
     await window.electron.generateLog(message)
   }
+
+  const logInfo = (message) => {
+    collectLogs(message, null, '')
+  }
+  const logSuccess = (message) => {
+    collectLogs(message, null, 'green')
+  }
+  const logError = (message) => {
+    collectLogs(message, null, 'red')
+  }
   return {
+    logError,
+    logInfo,
+    logSuccess,
     collectLogs,
     currentTopic,
     netWorkStatus

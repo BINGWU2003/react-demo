@@ -5,9 +5,9 @@
  * @FilePath: \electron-hiprint\tools\log.js
  */
 const { app } = require("electron");
-const { access, appendFile, constants, writeFile } = require("node:fs");
+const { access, appendFile, constants, writeFile, unlink, readdir } = require("node:fs");
 const dayjs = require("dayjs");
-
+const path = require("path");
 const logs = app.getPath('logs')
 
 /**
@@ -57,6 +57,38 @@ function log(message) {
       .catch((err) => {
         reject(err);
       });
+    deleteOldLogs();
+  });
+}
+
+function deleteOldLogs() {
+  const daysToKeep = 7;
+  const currentDate = dayjs();
+
+  return new Promise((resolve, reject) => {
+    readdir(logs, (err, files) => {
+      if (err) {
+        return reject('无法扫描目录: ' + err);
+      }
+
+      files.forEach(file => {
+        // 假设文件名中包含日期，例如：2024-03-01.log
+        const fileDate = dayjs(file.split('.')[0], 'YYYY-MM-DD');
+
+        if (fileDate.isBefore(currentDate.subtract(daysToKeep, 'days'))) {
+          const filePath = path.join(logs, file);
+          unlink(filePath, (err) => {
+            if (err) {
+              console.error('无法删除文件 ' + filePath + ': ' + err);
+            } else {
+              console.log('已删除文件: ' + filePath);
+            }
+          });
+        }
+      });
+
+      resolve();
+    });
   });
 }
 
