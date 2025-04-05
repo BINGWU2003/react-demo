@@ -55,7 +55,7 @@ import {showToast} from '@/utils/common'
 import dayjs from 'dayjs'
 import {user, client, printer} from "@/utils/store";
 import { useCollectLogs } from '@/hooks/collect-logs'
-const { collectLogs, currentTopic, netWorkStatus } = useCollectLogs()
+const { collectLogs, currentTopic, netWorkStatus,logError } = useCollectLogs()
 const router = useRouter()
 const printerName = ref(printer.name || '');
 const printDeviceList = ref([])
@@ -316,6 +316,9 @@ const connectMqtt = async () => {
       isBusy: printStatus.value.isBusy
     }).catch(e => {
       collectLogs(`心跳发送失败,clientId:${client.id},printerName:${printerName.value}`, e, 'red');
+      if (!mqttClient.client) {
+        location.reload();
+      }
     }).finally(() => {
       setTimeout(() => {
         pubHeartbeat();
@@ -360,7 +363,12 @@ onMounted(async () => {
     await connectMqtt()
     updatePrintStatus();
   } catch (error) {
-    showToast(error.msg || error)
+    logError("初始化异常" + error);
+    showToast("网络连接异常，10s后重载页面")
+    // 延时刷新
+    setTimeout(() => {
+      location.reload();
+    }, 10000)
   }
   timer = setInterval(() => {
     getPrintDevice().then((res) => {

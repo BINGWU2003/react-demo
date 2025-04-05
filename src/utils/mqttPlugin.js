@@ -23,19 +23,17 @@ function MqttPlugin(enableLog = false) {
         port: 8083,
         username: '',
         password: '',
-        clean: true,          // 明确清理会话
-        reconnectPeriod: 0,   // 禁用库自带重连
+        reconnectPeriod: 30,   // 禁用库自带重连
         keepalive: 60,        // 心跳检测
-        protocolVersion: 4    // 强制使用 MQTT v3.1.1
+        protocolVersion: 4,    // 强制使用 MQTT v3.1.1
+        reconnect: true
     };
 
     return {
         client: null,
         opt: {},
         topicMap: {},
-        reconnecting: false,
         reconnectTimes: 0,
-        reconnectId: null,
         publishTimeoutId: null,
         url: '',
         init(opt, onSuccess) {
@@ -43,10 +41,8 @@ function MqttPlugin(enableLog = false) {
             // 动态选择协议
             let protocol = 'ws';
             this.url = `${protocol}://${this.opt.host}/mqtt`;
-
             // 清理旧客户端
             this._cleanupClient();
-
             // 创建新连接
             this.client = mqtt.connect(this.url, this.opt);
             this._configListener(onSuccess);
@@ -54,6 +50,7 @@ function MqttPlugin(enableLog = false) {
 
         _cleanupClient() {
             if (this.client) {
+                logInfo('清理旧连接');
                 this.client.removeAllListeners();
                 this.client.end(true, () => {
                     this.client = null;
@@ -69,7 +66,6 @@ function MqttPlugin(enableLog = false) {
                 log('MQTT连接成功', e);
                 logSuccess(`MQTT连接成功`);
                 _this.reconnectTimes = 0;
-                _this.reconnecting = false;
 
                 // 自动重新订阅
                 if (Object.keys(_this.topicMap).length > 0) {
@@ -85,13 +81,14 @@ function MqttPlugin(enableLog = false) {
             this.client.on('error', (e) => {
                 log('MQTT连接错误:', e);
                 logError(`连接错误: ${e.message}`, '', 'red');
-                this.reconnecting = false;
-                // 可恢复错误处理
-                _this.reconnect();
+                // 直接重新刷新页面，简单粗暴
+                if (location) {
+                    location.reload();
+                }
             });
 
             this.client.on('reconnect', () => {
-                log(`第${_this.reconnectTimes + 1}次重连尝试`);
+                logInfo(`第${_this.reconnectTimes ++}次重连尝试`);
             });
 
             this.client.on('message', (topic, message) => {
@@ -101,8 +98,7 @@ function MqttPlugin(enableLog = false) {
                 } catch (e) {
                     msg = message.toString();
                 }
-                console.log(this.opt.clientId)
-                log('收到消息:', msg)
+                logInfo('收到消息:', msg)
                 const callback = _this.findTopic(topic);
                 if (callback) {
                     try {
@@ -120,48 +116,11 @@ function MqttPlugin(enableLog = false) {
 
             this.client.on('close', () => {
                 logError(`连接关闭`, '', 'red');
-                if (!_this.reconnecting) {
-                    _this.reconnect();
-                }
             });
 
             this.client.on('offline', () => {
                 logError(`客户端离线`, '', 'red');
             });
-        },
-
-        reconnect() {
-            if (this.reconnecting) {
-                logInfo('正在重连中，请稍等...')
-                return;
-            }
-            if (this.reconnectTimes >= MAX_RECONNECT_TIMES) {
-                logInfo(`重连已停止，当前尝试次数: ${this.reconnectTimes}`);
-                return;
-            }
-            this.reconnecting = true;
-            const delay = Math.min(
-                BASE_RECONNECT_DELAY * Math.pow(2, this.reconnectTimes),
-                MAX_RECONNECT_DELAY
-            );
-            logInfo(`等待 ${delay / 1000} 秒后重试...`);
-            if(this.reconnectId){
-                clearTimeout(this.reconnectId);
-                this.reconnectId = null;
-            }
-            this.reconnectId = setTimeout(() => {
-                this.reconnectTimes++;
-                logInfo('重建客户端连接');
-                this.init(this.opt, () => {
-                    this.reconnecting = false;
-                });
-                setTimeout(() => {
-                    if(this.reconnecting){
-                        this.reconnecting = false;
-                    }
-                    // 重试超时，重置重连标识
-                }, delay);
-            }, delay);
         },
 
         sub(topic, callback, qos = 2) {
@@ -176,10 +135,8 @@ function MqttPlugin(enableLog = false) {
             this.client.unsubscribe(topic);
             this.client.subscribe(topic, { qos }, (err) => {
                 if (err) {
-                    logError(`订阅失败: ${topic}`);
-                    if (err.message === 'client disconnecting') {
-                        this.reconnect();
-                    }
+                    logError(`订阅失败: ${topic}, 直接重载页面刷新`);
+                    location.reload();
                 } else {
                     logSuccess(`订阅成功:${topic}`);
                 }
@@ -204,20 +161,12 @@ function MqttPlugin(enableLog = false) {
                 try {
                     if (!this.client || this.client.disconnected) {
                         const err = new Error('客户端未连接');
-                        logError(`发送失败: ${topic}, 客户端连接状态:${this.client?.disconnected}`);
-                        // 延时重连
-                        setTimeout(() => {
-                            if(!this.client || this.client.disconnected){
-                                this.reconnect()
-                            }
-                        }, 3000)
+                        logError(`发送失败: ${topic}, 客户端连接状态:${this.client}`);
                         return reject(err);
                     }
                     this.publishTimeoutId = setTimeout(() => {
                         const timeoutError = new Error('MQTT publish 超时');
                         logError(`发送超时: ${topic}`) ;
-                        // 尝试重连
-                        this.reconnect();
                         this.publishTimeoutId = null;
                         reject(timeoutError);
                     }, timeout);
@@ -229,9 +178,6 @@ function MqttPlugin(enableLog = false) {
                         clearTimeout(this.publishTimeoutId);
                         if (err) {
                             logError(`发送失败: ${topic}, ${err.message}`);
-                            if (err.message === 'client disconnecting') {
-                                this.reconnect();
-                            }
                             reject(err);
                         } else {
                             logSuccess(`发送成功: ${topic}`);

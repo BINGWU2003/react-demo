@@ -78,8 +78,8 @@ async function confirmLogin() {
   try {
     const res = await phoneLogin(form.value)
     user.token = res.headerToken;
-    collectLogs('登录成功', res.data.data)
     router.push('/company')
+    collectLogs('登录成功', res.data?.data?.id)
   } catch (error) {
     console.log(error)
     showToast("用户名或密码错误");
