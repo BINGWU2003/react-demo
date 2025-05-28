@@ -37,6 +37,12 @@
             "ia32"
           ]
         }
+      ],
+      "certificateFile": "./cert/certificate.pfx",
+      "certificatePassword": "1034291441",
+      "verifyUpdateCodeSignature": false,
+      "signingHashAlgorithms": [
+        "sha256"
       ]
     },
     "mac": {
