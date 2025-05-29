@@ -215,8 +215,8 @@ const handlePrint = (htmlData, width = 40, height = 60) => {
       if (result.success) {
         resolve('打印成功')
       } else {
-        reject('打印失败')
-        collectLogs(`打印失败`, result)
+        reject('打印失败' + JSON.stringify(result))
+
       }
     } catch (error) {
       console.log('打印失败', error);
@@ -258,7 +258,7 @@ async function doPrint(taskId) {
       collectLogs(`打印失败,clientId:${client.id},taskId:${taskId},printerName:${printerName.value},`, errorInfo)
     }
   } catch (error) {
-    errorInfo = error.message;
+    errorInfo = error.message || error;
     showToast(error.message || error);
     collectLogs(`打印失败,clientId:${client.id},taskId:${taskId},printerName:${printerName.value},`, error, 'red')
   }
