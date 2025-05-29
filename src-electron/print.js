@@ -38,7 +38,7 @@ function createPrintWindow(htmlContent, options = {}) {
       printWindow.webContents.print(printOptions, (success, failureReason) => {
         console.log(success, failureReason);
         if (!success) {
-          log('打印失败', failureReason)
+          log('打印失败' + failureReason)
           reject(failureReason)
         } else {
           resolve()

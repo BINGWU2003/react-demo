@@ -253,6 +253,8 @@ async function doPrint(taskId) {
         errorInfo = '打印机状态异常,请检查';
       }
     } else {
+      showToast(errorInfo)
+      collectLogs(`打印失败,clientId:${client.id},taskId:${taskId},printerName:${printerName.value},`, errorInfo)
     }
   } catch (error) {
     errorInfo = error.message;
@@ -265,7 +267,7 @@ async function doPrint(taskId) {
     isSuccess: errorInfo === '',
     errorInfo
   });
-
+  return errorInfo
 }
 
 const checkPrintStatus = async () => {
@@ -340,8 +342,10 @@ const connectMqtt = async () => {
     if (message.taskId) {
       // 打印任务
       try {
-        await doPrint(message.taskId);
-        collectLogs(`打印成功,clientId:${client.id},taskId:${message.taskId},printerName:${printerName.value}`)
+        const errorInfo = await doPrint(message.taskId);
+        if (!errorInfo) {
+          collectLogs(`打印成功,clientId:${client.id},taskId:${message.taskId},printerName:${printerName.value}`)
+        }
       } catch (error) {
         console.error("打印失败", error);
         showToast(error.msg)
