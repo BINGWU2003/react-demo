@@ -216,6 +216,7 @@ const handlePrint = (htmlData, width = 40, height = 60) => {
         resolve('打印成功')
       } else {
         reject('打印失败')
+        collectLogs(`打印失败`, result)
       }
     } catch (error) {
       console.log('打印失败', error);
