@@ -255,7 +255,7 @@ async function doPrint(taskId) {
       }
     } else {
       showToast(errorInfo)
-      collectLogs(`打印失败,clientId:${client.id},taskId:${taskId},printerName:${printerName.value},`, errorInfo)
+      collectLogs(`打印失败,clientId:${client.id},taskId:${taskId},printerName:${printerName.value},`, errorInfo, errorInfo === '打印机离线' ? 'red' : 'green')
     }
   } catch (error) {
     errorInfo = error.message;
