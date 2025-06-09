@@ -24,8 +24,4 @@ release
 *.sln
 *.sw?
 
-# 证书文件
-cert/*.pfx
-cert/*.pem
-cert/*.p12
-cert/*.key
+
