@@ -1,0 +1,53 @@
+import { createBrowserRouter } from 'react-router-dom';
+import Layout from '../components/Layout';
+import ProtectedRoute from '../components/ProtectedRoute';
+import { Home, About, Contact, NotFound, Login } from '../pages';
+import { UserLayout, Profile, Settings } from '../pages/User';
+
+export const router = createBrowserRouter([
+  {
+    path: '/login',
+    element: <Login />,
+  },
+  {
+    path: '/',
+    element: <Layout />,
+    errorElement: <NotFound />,
+    children: [
+      {
+        index: true,
+        element: <Home />,
+      },
+      {
+        path: 'about',
+        element: <About />,
+      },
+      {
+        path: 'contact',
+        element: <Contact />,
+      },
+      {
+        path: 'user',
+        element: (
+          <ProtectedRoute>
+            <UserLayout />
+          </ProtectedRoute>
+        ),
+        children: [
+          {
+            path: 'profile',
+            element: <Profile />,
+          },
+          {
+            path: 'settings',
+            element: <Settings />,
+          },
+        ],
+      },
+    ],
+  },
+  {
+    path: '*',
+    element: <NotFound />,
+  },
+]); 
