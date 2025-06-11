@@ -1,13 +1,13 @@
 import { createBrowserRouter } from 'react-router-dom';
 import Layout from '../components/Layout';
 import ProtectedRoute from '../components/ProtectedRoute';
-import { Home, About, Contact, NotFound, Login } from '../pages';
+import { Home, About, Contact, NotFound, Login, ApiExample } from '../pages';
 import { UserLayout, Profile, Settings } from '../pages/User';
-
+import { UserList } from '../pages/UserList';
 export const router = createBrowserRouter([
   {
     path: '/login',
-    element: <Login />,
+    element: <Login />
   },
   {
     path: '/',
@@ -16,15 +16,19 @@ export const router = createBrowserRouter([
     children: [
       {
         index: true,
-        element: <Home />,
+        element: <Home />
       },
       {
         path: 'about',
-        element: <About />,
+        element: <About />
       },
       {
         path: 'contact',
-        element: <Contact />,
+        element: <Contact />
+      },
+      {
+        path: 'api-example',
+        element: <ApiExample />
       },
       {
         path: 'user',
@@ -36,18 +40,22 @@ export const router = createBrowserRouter([
         children: [
           {
             path: 'profile',
-            element: <Profile />,
+            element: <Profile />
           },
           {
             path: 'settings',
-            element: <Settings />,
-          },
-        ],
+            element: <Settings />
+          }
+        ]
       },
-    ],
+      {
+        path: 'user-list',
+        element: <UserList />
+      }
+    ]
   },
   {
     path: '*',
-    element: <NotFound />,
-  },
-]); 
+    element: <NotFound />
+  }
+]);

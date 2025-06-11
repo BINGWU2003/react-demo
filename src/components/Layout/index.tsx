@@ -7,15 +7,23 @@ const Layout = () => {
   const menuItems = [
     {
       key: 'home',
-      label: <Link to="/">首页</Link>,
+      label: <Link to='/'>首页</Link>
     },
     {
       key: 'about',
-      label: <Link to="/about">关于我们</Link>,
+      label: <Link to='/about'>关于我们</Link>
     },
     {
       key: 'contact',
-      label: <Link to="/contact">联系我们</Link>,
+      label: <Link to='/contact'>联系我们</Link>
+    },
+    {
+      key: 'api-example',
+      label: <Link to='/api-example'>API示例</Link>
+    },
+    {
+      key: 'user-list',
+      label: <Link to='/user-list'>用户列表</Link>
     },
     {
       key: 'user',
@@ -23,14 +31,14 @@ const Layout = () => {
       children: [
         {
           key: 'profile',
-          label: <Link to="/user/profile">个人资料</Link>,
+          label: <Link to='/user/profile'>个人资料</Link>
         },
         {
           key: 'settings',
-          label: <Link to="/user/settings">设置</Link>,
-        },
-      ],
-    },
+          label: <Link to='/user/settings'>设置</Link>
+        }
+      ]
+    }
   ];
 
   return (
