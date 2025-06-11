@@ -1,6 +1,6 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Button, Table, Modal, Form, Input, message, Space } from 'antd';
-import { useApi } from '../../hooks/useApi';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { getUserList, createUser, updateUser } from '../../services/user';
 import type { Query, ListResponse } from '../../types/params';
 import type { UserItem, User } from '../../types/user';
@@ -16,49 +16,60 @@ const UserList = () => {
   const [form] = Form.useForm<User>();
   const [messageApi, contextHolder] = message.useMessage();
 
-  const getUserListApi = useApi(getUserList);
-  const createUserApi = useApi(createUser, {
-    showSuccessMessage: true,
-    successMessage: '用户创建成功！'
+  const queryClient = useQueryClient();
+
+  // 🎯 获取用户列表
+  const {
+    data: listData,
+    isLoading,
+    error,
+    refetch
+  } = useQuery({
+    queryKey: ['users', query],
+    queryFn: () => getUserList(query),
+    select: (data) => data as unknown as ListResponse<UserItem> // 类型断言
   });
-  const updateUserApi = useApi(updateUser, {
-    showSuccessMessage: true,
-    successMessage: '用户更新成功！'
+
+  // 🎯 创建用户 Mutation
+  const createMutation = useMutation({
+    mutationFn: createUser,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['users'] });
+      message.success('用户创建成功！');
+      handleCloseModal();
+    },
+    onError: (error: { response?: { data?: { message?: string } } }) => {
+      messageApi.open({
+        type: 'error',
+        content: error.response?.data?.message || '创建用户失败'
+      });
+    }
   });
 
-  // 组件渲染完毕后调用接口
-  useEffect(() => {
-    getUserListApi.execute(query);
-  }, []); // 空依赖数组，只在组件挂载后执行一次
-
-  // 监听创建成功，刷新列表
-  useEffect(() => {
-    if (createUserApi.data) {
-      setIsModalOpen(false);
-      form.resetFields();
-      handleRefresh();
+  // 🎯 更新用户 Mutation
+  const updateMutation = useMutation({
+    mutationFn: updateUser,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['users'] });
+      message.success('用户更新成功！');
+      handleCloseModal();
+    },
+    onError: (error: { response?: { data?: { message?: string } } }) => {
+      messageApi.open({
+        type: 'error',
+        content: error.response?.data?.message || '更新用户失败'
+      });
     }
-  }, [createUserApi.data]);
-
-  // 监听更新成功，刷新列表
-  useEffect(() => {
-    if (updateUserApi.data) {
-      setIsModalOpen(false);
-      setIsEditing(false);
-      setEditingUser(null);
-      form.resetFields();
-      handleRefresh();
-    }
-  }, [updateUserApi.data]);
+  });
 
   // 刷新数据
   const handleRefresh = () => {
-    getUserListApi.execute(query);
+    refetch();
   };
 
   // 改变页码
   const handlePageChange = (page: number, pageSize: number) => {
-    setQuery((prev) => ({ ...prev, page, limit: pageSize }));
+    setQuery({ page, limit: pageSize });
   };
 
   // 打开添加用户弹窗
@@ -95,38 +106,21 @@ const UserList = () => {
 
       if (isEditing && editingUser) {
         // 更新用户
-        await updateUserApi.execute({
+        updateMutation.mutate({
           ...editingUser,
           ...values
         });
       } else {
         // 创建用户
-        await createUserApi.execute(values);
+        createMutation.mutate(values);
       }
-    } catch (error: unknown) {
-      console.error(error);
-      if (
-        error &&
-        typeof error === 'object' &&
-        'name' in error &&
-        error.name === 'AxiosError'
-      ) {
-        const axiosError = error as {
-          response?: { data?: { message?: string } };
-        };
-        messageApi.open({
-          type: 'error',
-          content: axiosError.response?.data?.message || '操作失败'
-        });
-      }
+    } catch (error) {
+      console.error('表单验证失败:', error);
     }
   };
 
-  // 类型断言处理数据
-  const listData = getUserListApi.data as ListResponse<UserItem> | null;
-
-  if (getUserListApi.error) {
-    return <div>加载失败: {getUserListApi.error.message}</div>;
+  if (error) {
+    return <div>加载失败: {(error as Error).message}</div>;
   }
 
   return (
@@ -135,7 +129,7 @@ const UserList = () => {
       <div style={{ marginBottom: 16, display: 'flex', gap: 8 }}>
         <Button
           onClick={handleRefresh}
-          loading={getUserListApi.loading}
+          loading={isLoading}
         >
           刷新数据
         </Button>
@@ -149,7 +143,7 @@ const UserList = () => {
 
       <Table
         dataSource={listData?.list || []}
-        loading={getUserListApi.loading}
+        loading={isLoading}
         rowKey='id'
         pagination={{
           current: query.page,
@@ -224,7 +218,7 @@ const UserList = () => {
         open={isModalOpen}
         onOk={handleSubmit}
         onCancel={handleCloseModal}
-        confirmLoading={createUserApi.loading || updateUserApi.loading}
+        confirmLoading={createMutation.isPending || updateMutation.isPending}
         maskClosable={false}
         width={500}
       >
