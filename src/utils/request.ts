@@ -3,6 +3,13 @@ import type { AxiosInstance, AxiosResponse, AxiosError, InternalAxiosRequestConf
 import { message } from 'antd';
 import { config as appConfig } from '../config/env';
 
+// 定义API响应的统一格式
+interface ApiResponse<T = any> {
+  code: number;
+  message: string;
+  data: T;
+}
+
 // 创建axios实例
 const request: AxiosInstance = axios.create({
   baseURL: appConfig.apiBaseUrl, // 后端地址
@@ -36,7 +43,7 @@ request.interceptors.request.use(
 
 // 响应拦截器
 request.interceptors.response.use(
-  (response: AxiosResponse) => {
+  (response: AxiosResponse<ApiResponse>) => {
     // 隐藏loading
     // hideLoading();
 
@@ -48,7 +55,7 @@ request.interceptors.response.use(
     if (status === 200) {
       // 这里可以根据你的后端API设计调整
       if (data.code === 200) {
-        return data.data; // 直接返回数据部分
+        return data.data; // 直接返回数据部分，类型为 T
       } else {
         message.error(data.message || '请求失败');
         return Promise.reject(new Error(data.message || '请求失败'));
@@ -97,4 +104,20 @@ request.interceptors.response.use(
   }
 );
 
-export default request; 
+// 重新定义 request 方法，提供更好的类型支持
+interface RequestInstance {
+  get<T = any>(url: string, config?: any): Promise<T>;
+  post<T = any>(url: string, data?: any, config?: any): Promise<T>;
+  put<T = any>(url: string, data?: any, config?: any): Promise<T>;
+  delete<T = any>(url: string, config?: any): Promise<T>;
+}
+
+// 类型化的 request 实例
+const typedRequest: RequestInstance = {
+  get: <T = any>(url: string, config?: any) => request.get<ApiResponse<T>>(url, config) as Promise<T>,
+  post: <T = any>(url: string, data?: any, config?: any) => request.post<ApiResponse<T>>(url, data, config) as Promise<T>,
+  put: <T = any>(url: string, data?: any, config?: any) => request.put<ApiResponse<T>>(url, data, config) as Promise<T>,
+  delete: <T = any>(url: string, config?: any) => request.delete<ApiResponse<T>>(url, config) as Promise<T>,
+};
+
+export default typedRequest; 

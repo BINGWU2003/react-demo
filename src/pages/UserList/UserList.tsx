@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Button, Table, Modal, Form, Input, message, Space } from 'antd';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { getUserList, createUser, updateUser } from '../../services/user';
-import type { Query, ListResponse } from '../../types/params';
+import type { Query } from '../../types/params';
 import type { UserItem, User } from '../../types/user';
 
 const UserList = () => {
@@ -26,8 +26,7 @@ const UserList = () => {
     refetch
   } = useQuery({
     queryKey: ['users', query],
-    queryFn: () => getUserList(query),
-    select: (data) => data as unknown as ListResponse<UserItem> // 类型断言
+    queryFn: () => getUserList(query)
   });
 
   // 🎯 创建用户 Mutation
