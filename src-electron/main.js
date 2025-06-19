@@ -17,6 +17,8 @@ const os = require('os')
 const AutoLaunch = require('auto-launch')
 const log = require("./log");
 const {devMainWidowOpt} = require("./config/devConfig");
+const https = require('https')
+const tls = require('tls');
 
 let mainWindow
 let tray
@@ -255,6 +257,167 @@ ipcMain.handle('get-printer-status', async (event, printerName) => {
 ipcMain.handle('generate-log', (event, message) => {
     log(message);
 })
+
+// 检查系统是否支持HTTPS
+ipcMain.handle('check-https-support', async () => {
+    try {
+        // 根据操作系统版本检查HTTPS支持
+        const platform = os.platform()
+        const release = os.release()
+        log('操作系统版本: ' + platform + ' ' + release)
+        // Windows XP (5.1) 及以下版本不支持现代HTTPS
+        if (platform === 'win32') {
+            const majorVersion = parseInt(release.split('.')[0])
+            if (majorVersion < 6) {  // Windows Vista及以上是6.0+
+                log('操作系统版本过低不支持HTTPS，退化为HTTP请求')
+                return false
+            }
+        }
+
+        // 检查TLS版本支持
+        const tlsSupport = await checkTLSSupport()
+        if (!tlsSupport.supported) {
+            log(`TLS版本检查失败: ${tlsSupport.reason}, 退化为HTTP请求`)
+            return false
+        }
+
+        return true
+    } catch (error) {
+        log('检查HTTPS支持时出错: ' + error.message)
+        // 出错时保守策略：返回false表示不支持HTTPS
+        return false
+    }
+})
+
+// 检查TLS版本支持
+async function checkTLSSupport() {
+    return new Promise((resolve) => {
+        try {
+            // 检查Windows注册表中的TLS设置
+            if (os.platform() === 'win32') {
+                exec('reg query "HKLM\\SYSTEM\\CurrentControlSet\\Control\\SecurityProviders\\SCHANNEL\\Protocols\\TLS 1.2\\Client" /v Enabled', (error, stdout) => {
+                    if (error || stdout.indexOf('0x1') === -1) {
+                        // 如果命令执行错误或TLS 1.2未启用，尝试进行实际TLS连接测试
+                        testTLSConnection().then(result => resolve(result))
+                        return
+                    }
+
+                    // TLS 1.2在注册表中被标记为启用
+                    resolve({ supported: true, version: '1.2', source: 'registry' })
+                })
+            } else {
+                // 对于非Windows系统，进行实际TLS连接测试
+                testTLSConnection().then(result => resolve(result))
+            }
+        } catch (error) {
+            log(`TLS版本检查异常: ${error.message}`)
+            // 出现异常时进行实际TLS连接测试作为备用方案
+            testTLSConnection().then(result => resolve(result))
+        }
+    })
+}
+
+// 通过尝试连接到外部服务器测试TLS版本
+async function testTLSConnection() {
+    return new Promise((resolve) => {
+        // 设置超时，避免长时间等待
+        const timeout = setTimeout(() => {
+            log('TLS连接测试超时')
+            resolve({ supported: false, reason: '连接测试超时', version: null })
+        }, 10000)
+
+        try {
+            // 创建TLS上下文来获取支持的最高TLS版本
+            // 使用中国国内可靠的HTTPS服务进行测试
+            // 按顺序尝试多个国内服务，提高测试成功率
+            const chineseServices = [
+                { host: 'www.baidu.com', port: 443 },
+                { host: 'www.qq.com', port: 443 },
+                { host: 'www.taobao.com', port: 443 },
+                { host: 'www.aliyun.com', port: 443 }
+            ]
+
+            // 随机选择一个服务，避免总是请求同一个服务
+            const service = chineseServices[Math.floor(Math.random() * chineseServices.length)]
+
+            log(`正在测试TLS连接: ${service.host}:${service.port}`)
+
+            const socket = tls.connect({
+                host: service.host,
+                port: service.port,
+                rejectUnauthorized: false, // 允许自签名证书，仅用于测试
+                timeout: 10000,
+                servername: service.host // 指定SNI，避免某些服务器的限制
+            }, () => {
+                clearTimeout(timeout)
+
+                // 检查TLS版本
+                const version = socket.getProtocol()
+                log(`检测到TLS版本: ${version}`)
+
+                // TLS 1.2及以上版本认为是安全的
+                if (version && (version.includes('TLSv1.2') || version.includes('TLSv1.3'))) {
+                    resolve({ supported: true, version: version, source: 'connection-test', host: service.host })
+                } else {
+                    resolve({ supported: false, reason: `TLS版本过低: ${version || '未知'}`, version: version })
+                }
+
+                socket.end()
+            })
+
+            socket.on('error', (error) => {
+                clearTimeout(timeout)
+                log(`TLS连接到 ${service.host} 测试错误: ${error.message}`)
+
+                // 如果第一个服务失败，尝试下一个服务
+                // 找到当前失败服务在数组中的位置
+                const currentIndex = chineseServices.findIndex(s => s.host === service.host)
+                const nextIndex = (currentIndex + 1) % chineseServices.length
+
+                // 如果尝试过所有服务，则返回失败
+                if (nextIndex <= currentIndex) {
+                    resolve({ supported: false, reason: error.message, version: null })
+                } else {
+                    // 否则尝试下一个服务
+                    const nextService = chineseServices[nextIndex]
+                    log(`尝试连接下一个服务: ${nextService.host}`)
+
+                    const nextSocket = tls.connect({
+                        host: nextService.host,
+                        port: nextService.port,
+                        rejectUnauthorized: false,
+                        timeout: 10000,
+                        servername: nextService.host
+                    }, () => {
+                        clearTimeout(timeout)
+                        const version = nextSocket.getProtocol()
+                        log(`检测到TLS版本: ${version} (备用服务器: ${nextService.host})`)
+
+                        if (version && (version.includes('TLSv1.2') || version.includes('TLSv1.3'))) {
+                            resolve({ supported: true, version: version, source: 'connection-test-fallback', host: nextService.host })
+                        } else {
+                            resolve({ supported: false, reason: `TLS版本过低: ${version || '未知'}`, version: version })
+                        }
+                        nextSocket.end()
+                    })
+
+                    nextSocket.on('error', (nextError) => {
+                        clearTimeout(timeout)
+                        log(`备用TLS连接测试错误: ${nextError.message}`)
+                        resolve({ supported: false, reason: nextError.message, version: null })
+                        nextSocket.destroy()
+                    })
+                }
+
+                socket.destroy()
+            })
+        } catch (error) {
+            clearTimeout(timeout)
+            log(`TLS测试异常: ${error.message}`)
+            resolve({ supported: false, reason: error.message, version: null })
+        }
+    })
+}
 
 // 监听显示主窗口的消息
 ipcMain.on('show-main-window', () => {

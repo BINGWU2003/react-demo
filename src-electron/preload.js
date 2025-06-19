@@ -17,5 +17,6 @@ contextBridge.exposeInMainWorld('electron', {
   getPrinterStatus: (printerName) => ipcRenderer.invoke('get-printer-status', printerName),
   getAppVersion: () => ipcRenderer.invoke('get-app-version'),
   generateLog: (message) => ipcRenderer.invoke('generate-log', message),
-  showMainWindow: () => ipcRenderer.send('show-main-window')
+  showMainWindow: () => ipcRenderer.send('show-main-window'),
+  checkHttpsSupport: () => ipcRenderer.invoke('check-https-support')
 })

@@ -10,6 +10,15 @@ const request = axios.create({
     baseURL: client.baseUrl || devConfig.baseUrl,
     timeout: 5000,
 })
+
+// 更新baseURL方法
+export const updateBaseURL = (newBaseUrl) => {
+    if (newBaseUrl) {
+        request.defaults.baseURL = newBaseUrl
+        collectLogs(`已更新API基础URL: ${newBaseUrl}`)
+    }
+};
+
 //请求拦截
 request.interceptors.request.use((config) => {
     const token = window.localStorage.getItem('token')
