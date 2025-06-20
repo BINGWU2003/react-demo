@@ -291,22 +291,16 @@ ipcMain.handle('check-https-support', async () => {
 
 // 检查TLS版本支持
 async function checkTLSSupport() {
-    return new Promise((resolve) => {
-        try {
-            // 检查Windows注册表中的TLS设置
-            if (os.platform() === 'win32') {
-                exec('reg query "HKLM\\SYSTEM\\CurrentControlSet\\Control\\SecurityProviders\\SCHANNEL\\Protocols\\TLS 1.2\\Client" /v Enabled', (error, stdout) => {
-                    if (error || stdout.indexOf('0x1') === -1) {
-                        // 如果命令执行错误或TLS 1.2未启用，尝试进行实际TLS连接测试
-                        testTLSConnection().then(result => resolve(result))
-                        return
-                    }
+    return new Promise(async (resolve) => {
+        const platform = os.platform()
+        log(`开始检查TLS支持 - 操作系统: ${platform}`);
 
-                    // TLS 1.2在注册表中被标记为启用
-                    resolve({ supported: true, version: '1.2', source: 'registry' })
-                })
+        try {
+            // 只处理Windows系统，其他系统直接进行连接测试
+            if (platform === 'win32') {
+                await checkWindowsTLSSupport(resolve)
             } else {
-                // 对于非Windows系统，进行实际TLS连接测试
+                log(`非Windows系统 ${platform}，直接进行连接测试`)
                 testTLSConnection().then(result => resolve(result))
             }
         } catch (error) {
@@ -317,6 +311,69 @@ async function checkTLSSupport() {
     })
 }
 
+// Windows系统TLS支持检查
+async function checkWindowsTLSSupport(resolve) {
+    log('检查Windows注册表TLS设置...')
+
+    // 检查多个TLS版本的注册表设置
+    const tlsVersionsToCheck = [
+        { version: '1.3', path: 'TLS 1.3\\Client' },
+        { version: '1.2', path: 'TLS 1.2\\Client' },
+        { version: '1.1', path: 'TLS 1.1\\Client' }
+    ]
+
+    let registryCheckCount = 0
+    let registryResults = []
+
+    // 并行检查所有TLS版本
+    tlsVersionsToCheck.forEach(({ version, path }) => {
+        const regCommand = `reg query "HKLM\\SYSTEM\\CurrentControlSet\\Control\\SecurityProviders\\SCHANNEL\\Protocols\\${path}" /v Enabled`
+
+        exec(regCommand, (error, stdout, stderr) => {
+            registryCheckCount++
+
+            if (!error && stdout.indexOf('0x1') !== -1) {
+                registryResults.push({
+                    version: version,
+                    enabled: true,
+                    source: 'registry'
+                })
+                log(`注册表检查: TLS ${version} 已启用`)
+            } else {
+                log(`注册表检查: TLS ${version} 未启用或检查失败`)
+            }
+
+            // 当所有注册表检查完成时
+            if (registryCheckCount === tlsVersionsToCheck.length) {
+                // 如果找到任何启用的TLS版本（1.2或以上）
+                const supportedVersions = registryResults.filter(r => r.enabled && (r.version === '1.2' || r.version === '1.3'))
+
+                if (supportedVersions.length > 0) {
+                    const bestVersion = supportedVersions.find(v => v.version === '1.3') || supportedVersions[0]
+                    log(`注册表检查成功，发现支持的TLS版本: ${bestVersion.version}`)
+                    resolve({
+                        supported: true,
+                        version: bestVersion.version,
+                        source: 'registry-enhanced',
+                        details: supportedVersions
+                    })
+                } else {
+                    log('注册表检查未发现支持的TLS版本，进行连接测试...')
+                    testTLSConnection().then(result => resolve(result))
+                }
+            }
+        })
+    })
+
+    // 设置注册表检查超时
+    setTimeout(() => {
+        if (registryCheckCount < tlsVersionsToCheck.length) {
+            log('注册表检查超时，进行连接测试...')
+            testTLSConnection().then(result => resolve(result))
+        }
+    }, 3000)
+}
+
 // 通过尝试连接到外部服务器测试TLS版本
 async function testTLSConnection() {
     return new Promise((resolve) => {
@@ -324,7 +381,7 @@ async function testTLSConnection() {
         const timeout = setTimeout(() => {
             log('TLS连接测试超时')
             resolve({ supported: false, reason: '连接测试超时', version: null })
-        }, 10000)
+        }, 5000);
 
         try {
             // 创建TLS上下文来获取支持的最高TLS版本
@@ -337,84 +394,78 @@ async function testTLSConnection() {
                 { host: 'www.aliyun.com', port: 443 }
             ]
 
-            // 随机选择一个服务，避免总是请求同一个服务
-            const service = chineseServices[Math.floor(Math.random() * chineseServices.length)]
+            // 打乱服务顺序，避免总是从同一个服务开始
+            const shuffledServices = [...chineseServices].sort(() => Math.random() - 0.5)
+            let attemptIndex = 0
 
-            log(`正在测试TLS连接: ${service.host}:${service.port}`)
-
-            const socket = tls.connect({
-                host: service.host,
-                port: service.port,
-                rejectUnauthorized: false, // 允许自签名证书，仅用于测试
-                timeout: 10000,
-                servername: service.host // 指定SNI，避免某些服务器的限制
-            }, () => {
-                clearTimeout(timeout)
-
-                // 检查TLS版本
-                const version = socket.getProtocol()
-                log(`检测到TLS版本: ${version}`)
-
-                // TLS 1.2及以上版本认为是安全的
-                if (version && (version.includes('TLSv1.2') || version.includes('TLSv1.3'))) {
-                    resolve({ supported: true, version: version, source: 'connection-test', host: service.host })
-                } else {
-                    resolve({ supported: false, reason: `TLS版本过低: ${version || '未知'}`, version: version })
+            function tryNextService() {
+                if (attemptIndex >= shuffledServices.length) {
+                    // 所有服务都尝试失败
+                    clearTimeout(timeout)
+                    log('所有TLS连接测试服务均失败')
+                    resolve({ supported: false, reason: '所有测试服务均连接失败', version: null })
+                    return
                 }
 
-                socket.end()
-            })
+                const service = shuffledServices[attemptIndex]
+                log(`正在测试TLS连接 (${attemptIndex + 1}/${shuffledServices.length}): ${service.host}:${service.port}`)
 
-            socket.on('error', (error) => {
-                clearTimeout(timeout)
-                log(`TLS连接到 ${service.host} 测试错误: ${error.message}`)
+                const socket = tls.connect({
+                    host: service.host,
+                    port: service.port,
+                    rejectUnauthorized: false, // 允许自签名证书，仅用于测试
+                    timeout: 4000,
+                    servername: service.host // 指定SNI，避免某些服务器的限制
+                }, () => {
+                    clearTimeout(timeout)
 
-                // 如果第一个服务失败，尝试下一个服务
-                // 找到当前失败服务在数组中的位置
-                const currentIndex = chineseServices.findIndex(s => s.host === service.host)
-                const nextIndex = (currentIndex + 1) % chineseServices.length
+                    // 检查TLS版本
+                    const version = socket.getProtocol()
+                    log(`检测到TLS版本: ${version} (测试服务器: ${service.host})`)
 
-                // 如果尝试过所有服务，则返回失败
-                if (nextIndex <= currentIndex) {
-                    resolve({ supported: false, reason: error.message, version: null })
-                } else {
-                    // 否则尝试下一个服务
-                    const nextService = chineseServices[nextIndex]
-                    log(`尝试连接下一个服务: ${nextService.host}`)
+                    // TLS 1.2及以上版本认为是安全的
+                    if (version && (version.includes('TLSv1.2') || version.includes('TLSv1.3'))) {
+                        resolve({
+                            supported: true,
+                            version: version,
+                            source: attemptIndex === 0 ? 'connection-test' : `connection-test-attempt-${attemptIndex + 1}`,
+                            host: service.host,
+                            attemptCount: attemptIndex + 1
+                        })
+                    } else {
+                        resolve({ supported: false, reason: `TLS版本过低: ${version || '未知'}`, version: version })
+                    }
 
-                    const nextSocket = tls.connect({
-                        host: nextService.host,
-                        port: nextService.port,
-                        rejectUnauthorized: false,
-                        timeout: 10000,
-                        servername: nextService.host
-                    }, () => {
-                        clearTimeout(timeout)
-                        const version = nextSocket.getProtocol()
-                        log(`检测到TLS版本: ${version} (备用服务器: ${nextService.host})`)
+                    socket.end()
+                })
 
-                        if (version && (version.includes('TLSv1.2') || version.includes('TLSv1.3'))) {
-                            resolve({ supported: true, version: version, source: 'connection-test-fallback', host: nextService.host })
-                        } else {
-                            resolve({ supported: false, reason: `TLS版本过低: ${version || '未知'}`, version: version })
-                        }
-                        nextSocket.end()
-                    })
+                socket.on('error', (error) => {
+                    log(`TLS连接到 ${service.host} 测试错误: ${error.message}`)
+                    socket.destroy();
 
-                    nextSocket.on('error', (nextError) => {
-                        clearTimeout(timeout)
-                        log(`备用TLS连接测试错误: ${nextError.message}`)
-                        resolve({ supported: false, reason: nextError.message, version: null })
-                        nextSocket.destroy()
-                    })
-                }
+                    // 尝试下一个服务
+                    attemptIndex++
+                    tryNextService()
+                });
 
-                socket.destroy()
-            })
+                // 为每个连接设置单独的超时
+                socket.setTimeout(4000, () => {
+                    log(`TLS连接到 ${service.host} 超时`)
+                    socket.destroy();
+
+                    // 尝试下一个服务
+                    attemptIndex++
+                    tryNextService()
+                })
+            }
+
+            // 开始尝试第一个服务
+            tryNextService();
+
         } catch (error) {
             clearTimeout(timeout)
             log(`TLS测试异常: ${error.message}`)
-            resolve({ supported: false, reason: error.message, version: null })
+            resolve({ supported: false, reason: error.message, version: null });
         }
     })
 }
