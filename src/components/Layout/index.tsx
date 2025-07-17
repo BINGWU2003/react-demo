@@ -64,6 +64,10 @@ const Layout = () => {
       label: <Link to='/user-list'>用户列表</Link>
     },
     {
+      key: 'book',
+      label: <Link to='/book'>图书列表</Link>
+    },
+    {
       key: 'user',
       label: '用户中心',
       children: [

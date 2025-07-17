@@ -4,6 +4,7 @@ import ProtectedRoute from '../components/ProtectedRoute';
 import { Home, About, Contact, NotFound, Login, ApiExample } from '../pages';
 import { UserLayout, Profile, Settings } from '../pages/User';
 import { UserList } from '../pages/UserList';
+import { BookList } from '../pages/Book';
 export const router = createBrowserRouter([
   {
     path: '/login',
@@ -51,6 +52,10 @@ export const router = createBrowserRouter([
       {
         path: 'user-list',
         element: <UserList />
+      },
+      {
+        path: 'book',
+        element: <BookList />
       }
     ]
   },
