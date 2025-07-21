@@ -1,5 +1,5 @@
 import request from '../utils/request';
-import type { User, UserItem } from '../types/user'
+import type { User, UserItem, LoginInfo } from '../types/user'
 import type { Query, ListResponse } from '../types/params';
 export const createUser = async (data: User) => {
   return await request.post<UserItem>('/api/users', data)
@@ -22,4 +22,17 @@ export const deleteUser = async (id: string) => {
       id
     }
   })
+}
+
+
+export const registerUser = async (data: User) => {
+  return await request.post<User>('/api/users/register', data)
+}
+
+export const loginUser = async (data: { email: string, password: string }) => {
+  return await request.post<LoginInfo>('/api/users/login', data)
+}
+
+export const getUserProfile = async () => {
+  return await request.get<UserItem>('/api/users/profile')
 }

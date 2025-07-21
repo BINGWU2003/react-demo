@@ -1,6 +1,6 @@
 import React from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
-
+import { useUserStore } from '../store/user';
 interface ProtectedRouteProps {
   children: React.ReactNode;
   requireAuth?: boolean;
@@ -11,9 +11,8 @@ const ProtectedRoute = ({
   requireAuth = true
 }: ProtectedRouteProps) => {
   const location = useLocation();
-  // 这里可以替换为真实的认证逻辑
-  const isAuthenticated = localStorage.getItem('token') !== null;
-
+  const loginInfo = useUserStore((state) => state.loginInfo);
+  const isAuthenticated = loginInfo.token !== '';
   if (requireAuth && !isAuthenticated) {
     // 重定向到登录页面，并保存当前位置
     return (

@@ -1,19 +1,23 @@
 import React from 'react';
 import { Button, Form, Input, Card } from 'antd';
 import { useNavigate, useLocation } from 'react-router-dom';
-
+import { useUserStore } from '../store/user';
+import { loginUser } from '../services/user';
 const Login: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
-
+  const setLoginInfo = useUserStore((state) => state.setLoginInfo);
   const from = location.state?.from?.pathname || '/';
 
-  const onFinish = (values: any) => {
-    console.log('登录信息:', values);
-    // 这里可以调用真实的登录API
-    // 模拟登录成功
-    localStorage.setItem('token', 'mock-token');
-    navigate(from, { replace: true });
+  const onFinish = (user: { email: string, password: string }) => {
+    console.log('登录信息:', user);
+    loginUser(user).then((res) => {
+      setLoginInfo(res);
+      navigate(from, { replace: true });
+    }).catch((err) => {
+      console.log('登录失败:', err);
+    });
+
   };
 
   return (
@@ -32,9 +36,9 @@ const Login: React.FC = () => {
           autoComplete="off"
         >
           <Form.Item
-            label="用户名"
-            name="username"
-            rules={[{ required: true, message: '请输入用户名!' }]}
+            label="邮箱"
+            name="email"
+            rules={[{ required: true, message: '请输入邮箱!' }]}
           >
             <Input />
           </Form.Item>
