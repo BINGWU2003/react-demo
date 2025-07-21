@@ -3,6 +3,7 @@ import { Button, Table, message, Popconfirm, Modal, Form, Input } from 'antd';
 import type { Book } from '../../types/book';
 import { getBookList, createBook, deleteBook } from '../../services/book';
 import type { Pagination } from '../../types/params';
+import ContentHeader from '../../components/content-header';
 const BookList = () => {
   const [books, setBooks] = useState<Book[]>([]);
   const [pagination, setPagination] = useState<Pagination>({
@@ -117,20 +118,22 @@ const BookList = () => {
   return (
     <div>
       {contextHolder}
-      <div style={{ marginBottom: 16, display: 'flex', gap: 8 }}>
-        <Button
-          onClick={handleRefresh}
-          loading={isLoading}
-        >
-          刷新数据
-        </Button>
-        <Button
-          type='primary'
-          onClick={handleOpenModal}
-        >
-          添加图书
-        </Button>
-      </div>
+      <ContentHeader title='图书列表' description='图书列表描述'>
+        <div style={{ display: 'flex', gap: 8 }}>
+          <Button
+            onClick={handleRefresh}
+            loading={isLoading}
+          >
+            刷新数据
+          </Button>
+          <Button
+            type='primary'
+            onClick={handleOpenModal}
+          >
+            添加图书
+          </Button>
+        </div>
+      </ContentHeader>
       <Table dataSource={books} columns={columns} loading={isLoading} rowKey="id" pagination={{
         current: pagination.page,
         pageSize: pagination.limit,

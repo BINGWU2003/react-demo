@@ -4,7 +4,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { getUserList, createUser, updateUser } from '../../services/user';
 import type { Query } from '../../types/params';
 import type { UserItem, User } from '../../types/user';
-
+import ContentHeader from '../../components/content-header';
 const UserList = () => {
   const [query, setQuery] = useState<Query>({
     page: 1,
@@ -125,20 +125,18 @@ const UserList = () => {
   return (
     <div>
       {contextHolder}
-      <div style={{ marginBottom: 16, display: 'flex', gap: 8 }}>
-        <Button
-          onClick={handleRefresh}
-          loading={isLoading}
-        >
-          刷新数据
-        </Button>
-        <Button
-          type='primary'
-          onClick={handleOpenModal}
-        >
-          添加用户
-        </Button>
-      </div>
+      <ContentHeader title='用户列表' description='用户列表描述'>
+        <div style={{ display: 'flex', gap: 8 }}>
+          <Button
+            onClick={handleRefresh}
+            loading={isLoading}
+          >
+            刷新数据
+          </Button>
+          <Button type='primary' onClick={handleOpenModal}>添加用户</Button>
+        </div>
+      </ContentHeader>
+
 
       <Table
         dataSource={listData?.list || []}
