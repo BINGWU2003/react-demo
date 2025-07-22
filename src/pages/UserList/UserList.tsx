@@ -125,7 +125,7 @@ const UserList = () => {
   return (
     <div>
       {contextHolder}
-      <ContentHeader title='用户列表' description='用户列表描述'>
+      <ContentHeader title='用户列表' description='用户列表描述' renderActions={(msg) => <div>{msg}</div>}>
         <div style={{ display: 'flex', gap: 8 }}>
           <Button
             onClick={handleRefresh}
